@@ -1,4 +1,4 @@
-package com.banco.api.banco.model.dto.Request;
+package com.banco.api.banco.model.dto.request;
 
 import java.time.LocalDate;
 

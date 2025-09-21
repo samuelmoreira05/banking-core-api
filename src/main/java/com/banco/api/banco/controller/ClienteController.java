@@ -1,9 +1,9 @@
 package com.banco.api.banco.controller;
 
-import com.banco.api.banco.model.dto.Request.DadosCadastroRequest;
+import com.banco.api.banco.model.dto.request.DadosAtualizarCliente;
+import com.banco.api.banco.model.dto.request.DadosCadastroRequest;
 import com.banco.api.banco.model.dto.response.DadosCadastroResponse;
 import com.banco.api.banco.model.dto.response.DadosListagemClientes;
-import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.service.ClienteService;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -36,5 +36,24 @@ public class ClienteController {
     ){
         Page<DadosListagemClientes> listagem = service.listaCliente(pageable);
         return ResponseEntity.ok(listagem);
+    }
+
+    @PutMapping("/{id}")
+    @Transactional
+    public ResponseEntity<Void> atualizarCliente(
+            @PathVariable Long id,
+            @RequestBody DadosAtualizarCliente dados) {
+        service.atualizarCliente(id, dados);
+        return ResponseEntity.noContent()
+                .build();
+    }
+
+    @DeleteMapping("/desativar/{id}")
+    @Transactional
+    public ResponseEntity<Void> desativarCliente(
+            @PathVariable Long id
+    ){
+        service.desativarCliente(id);
+        return ResponseEntity.noContent().build();
     }
 }

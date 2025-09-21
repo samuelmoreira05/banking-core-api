@@ -1,7 +1,8 @@
 package com.banco.api.banco.model.entity;
 
 import com.banco.api.banco.enums.StatusCliente;
-import com.banco.api.banco.model.dto.Request.DadosCadastroRequest;
+import com.banco.api.banco.model.dto.request.DadosAtualizarCliente;
+import com.banco.api.banco.model.dto.request.DadosCadastroRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -46,6 +47,9 @@ public class Cliente {
     private String telefone;
     private String endereco;
 
+    private LocalDate dataDesativacao;
+    private LocalDate dataAtivacao;
+
     public Cliente(DadosCadastroRequest dados) {
         this.nome = dados.nome();
         this.email = dados.email();
@@ -56,9 +60,32 @@ public class Cliente {
         this.status = StatusCliente.ATIVO;
     }
 
+    public void isInativo() {
+        this.status = StatusCliente.INATIVO;
+        this.dataDesativacao = LocalDate.now();
+    }
+
+    public void isAtivo() {
+        this.status = StatusCliente.ATIVO;
+        this.dataAtivacao = LocalDate.now();
+    }
 
     public int getIdade() {
        return LocalDate.now().getYear() - dataNascimento.getYear();
     }
 
+    public void atualizarCliente(DadosAtualizarCliente dados) {
+        if (dados.nome() != null) {
+            this.nome = dados.nome();
+        }
+        if (dados.endereco() != null) {
+            this.endereco = dados.endereco();
+        }
+        if (dados.email() != null) {
+            this.email = dados.email();
+        }
+        if (dados.telefone() != null) {
+            this.telefone = dados.telefone();
+        }
+    }
 }
