@@ -60,7 +60,7 @@ public class Cliente {
         this.status = StatusCliente.ATIVO;
     }
 
-    public void isInativo() {
+    public void desativar() {
         this.status = StatusCliente.INATIVO;
         this.dataDesativacao = LocalDate.now();
     }

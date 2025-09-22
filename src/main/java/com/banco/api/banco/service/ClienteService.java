@@ -17,7 +17,6 @@ import java.util.Optional;
 @Service
 public class ClienteService {
 
-    @Autowired
     private final ClienteRepository repository;
 
     public ClienteService(ClienteRepository repository) {
@@ -34,19 +33,20 @@ public class ClienteService {
         return clientePage.map(DadosListagemClientes::new);
     }
 
-    public void atualizarCliente (Long id,DadosAtualizarCliente dados){
+    public Cliente atualizarCliente (Long id,DadosAtualizarCliente dados){
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException ("Usuario não encontrado na base de dados!");
         }
         Cliente cliente = repository.getReferenceById(id);
         cliente.atualizarCliente(dados);
+        return repository.save(cliente);
     }
 
     public void desativarCliente (Long id) {
         Optional<Cliente> optionalCliente = repository.findById(id);
         if (optionalCliente.isPresent()) {
             Cliente cliente = optionalCliente.get();
-            cliente.isInativo();
+            cliente.desativar();
             repository.save(cliente);
         }
     }

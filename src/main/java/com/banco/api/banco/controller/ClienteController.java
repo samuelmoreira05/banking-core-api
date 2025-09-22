@@ -3,9 +3,13 @@ package com.banco.api.banco.controller;
 import com.banco.api.banco.model.dto.request.DadosAtualizarCliente;
 import com.banco.api.banco.model.dto.request.DadosCadastroRequest;
 import com.banco.api.banco.model.dto.response.DadosCadastroResponse;
+import com.banco.api.banco.model.dto.response.DadosDetalhamentoCliente;
 import com.banco.api.banco.model.dto.response.DadosListagemClientes;
+import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.service.ClienteService;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -19,12 +23,12 @@ public class ClienteController {
     private final ClienteService service;
 
     public ClienteController(ClienteService service) {
-        this.service = service;
-    }
+        this.service = service;}
 
     @PostMapping("/cadastrar")
     @Transactional
     public ResponseEntity<DadosCadastroResponse> cadastroCliente(
+            @Valid
             @RequestBody DadosCadastroRequest dados) {
         DadosCadastroResponse response = service.cadastraCliente(dados);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -40,12 +44,12 @@ public class ClienteController {
 
     @PutMapping("/{id}")
     @Transactional
-    public ResponseEntity<Void> atualizarCliente(
+    public ResponseEntity atualizarCliente(
+            @Valid
             @PathVariable Long id,
             @RequestBody DadosAtualizarCliente dados) {
-        service.atualizarCliente(id, dados);
-        return ResponseEntity.noContent()
-                .build();
+        Cliente cliente = service.atualizarCliente(id, dados);
+        return ResponseEntity.ok(new DadosDetalhamentoCliente(cliente));
     }
 
     @DeleteMapping("/desativar/{id}")
