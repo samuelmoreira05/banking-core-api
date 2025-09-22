@@ -1,7 +1,6 @@
-package com.banco.api.banco.model.dto.response;
+package com.banco.api.banco.controller.cliente.response;
 
-import com.banco.api.banco.enums.StatusCliente;
-import com.banco.api.banco.model.dto.request.DadosAtualizarCliente;
+import com.banco.api.banco.enums.StatusConta;
 import com.banco.api.banco.model.entity.Cliente;
 
 import java.time.LocalDate;
@@ -14,7 +13,7 @@ public record DadosDetalhamentoCliente(
         String cpf,
         String telefone,
         String endereco,
-        StatusCliente status
+        StatusConta status
 ) {
     public DadosDetalhamentoCliente(Cliente cliente) {
         this(

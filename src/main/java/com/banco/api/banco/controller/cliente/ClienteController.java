@@ -1,15 +1,14 @@
-package com.banco.api.banco.controller;
+package com.banco.api.banco.controller.cliente;
 
-import com.banco.api.banco.model.dto.request.DadosAtualizarCliente;
-import com.banco.api.banco.model.dto.request.DadosCadastroRequest;
-import com.banco.api.banco.model.dto.response.DadosCadastroResponse;
-import com.banco.api.banco.model.dto.response.DadosDetalhamentoCliente;
-import com.banco.api.banco.model.dto.response.DadosListagemClientes;
+import com.banco.api.banco.controller.cliente.request.DadosAtualizarCliente;
+import com.banco.api.banco.controller.cliente.request.DadosCadastroRequest;
+import com.banco.api.banco.controller.cliente.response.DadosCadastroResponse;
+import com.banco.api.banco.controller.cliente.response.DadosDetalhamentoCliente;
+import com.banco.api.banco.controller.cliente.response.DadosListagemClientes;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.service.ClienteService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;

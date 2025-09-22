@@ -1,8 +1,8 @@
 package com.banco.api.banco.model.entity;
 
-import com.banco.api.banco.enums.StatusCliente;
-import com.banco.api.banco.model.dto.request.DadosAtualizarCliente;
-import com.banco.api.banco.model.dto.request.DadosCadastroRequest;
+import com.banco.api.banco.enums.StatusConta;
+import com.banco.api.banco.controller.cliente.request.DadosAtualizarCliente;
+import com.banco.api.banco.controller.cliente.request.DadosCadastroRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -14,7 +14,9 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "Clientes")
-@Data
+@Getter
+@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Cliente {
@@ -42,7 +44,7 @@ public class Cliente {
     private String email;
 
     @Enumerated(EnumType.STRING)
-    private StatusCliente status = StatusCliente.ATIVO;
+    private StatusConta status = StatusConta.ATIVO;
 
     private String telefone;
     private String endereco;
@@ -57,16 +59,16 @@ public class Cliente {
         this.dataNascimento = dados.dataNascimento();
         this.endereco = dados.endereco();
         this.telefone = dados.telefone();
-        this.status = StatusCliente.ATIVO;
+        this.status = StatusConta.ATIVO;
     }
 
     public void desativar() {
-        this.status = StatusCliente.INATIVO;
+        this.status = StatusConta.INATIVO;
         this.dataDesativacao = LocalDate.now();
     }
 
-    public void isAtivo() {
-        this.status = StatusCliente.ATIVO;
+    public void ativar() {
+        this.status = StatusConta.ATIVO;
         this.dataAtivacao = LocalDate.now();
     }
 

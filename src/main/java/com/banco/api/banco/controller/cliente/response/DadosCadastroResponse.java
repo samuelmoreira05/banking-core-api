@@ -1,6 +1,6 @@
-package com.banco.api.banco.model.dto.response;
+package com.banco.api.banco.controller.cliente.response;
 
-import com.banco.api.banco.enums.StatusCliente;
+import com.banco.api.banco.enums.StatusConta;
 import com.banco.api.banco.model.entity.Cliente;
 
 public record DadosCadastroResponse(
@@ -8,7 +8,7 @@ public record DadosCadastroResponse(
         String nome,
         String email,
         String telefone,
-        StatusCliente status
+        StatusConta status
 ) {
     public DadosCadastroResponse(Cliente cliente) {
         this(
