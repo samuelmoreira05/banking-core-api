@@ -1,10 +1,10 @@
 package com.banco.api.banco.controller.cliente;
 
-import com.banco.api.banco.controller.cliente.request.DadosAtualizarCliente;
-import com.banco.api.banco.controller.cliente.request.DadosCadastroRequest;
-import com.banco.api.banco.controller.cliente.response.DadosCadastroResponse;
-import com.banco.api.banco.controller.cliente.response.DadosDetalhamentoCliente;
-import com.banco.api.banco.controller.cliente.response.DadosListagemClientes;
+import com.banco.api.banco.controller.cliente.request.DadosAtualizarClienteRequest;
+import com.banco.api.banco.controller.cliente.request.DadosCadastroClienteRequest;
+import com.banco.api.banco.controller.cliente.response.DadosMostrarClienteResponse;
+import com.banco.api.banco.controller.cliente.response.DadosDetalhamentoClienteResponse;
+import com.banco.api.banco.controller.cliente.response.DadosListagemClienteResponse;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.service.ClienteService;
 import jakarta.transaction.Transactional;
@@ -26,18 +26,18 @@ public class ClienteController {
 
     @PostMapping("/cadastrar")
     @Transactional
-    public ResponseEntity<DadosCadastroResponse> cadastroCliente(
+    public ResponseEntity<DadosMostrarClienteResponse> cadastroCliente(
             @Valid
-            @RequestBody DadosCadastroRequest dados) {
-        DadosCadastroResponse response = service.cadastraCliente(dados);
+            @RequestBody DadosCadastroClienteRequest dados) {
+        DadosMostrarClienteResponse response = service.cadastraCliente(dados);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/listar")
-    public ResponseEntity<Page<DadosListagemClientes>> listarCliente(
+    public ResponseEntity<Page<DadosListagemClienteResponse>> listarCliente(
             Pageable pageable
     ){
-        Page<DadosListagemClientes> listagem = service.listaCliente(pageable);
+        Page<DadosListagemClienteResponse> listagem = service.listaCliente(pageable);
         return ResponseEntity.ok(listagem);
     }
 
@@ -46,9 +46,9 @@ public class ClienteController {
     public ResponseEntity atualizarCliente(
             @Valid
             @PathVariable Long id,
-            @RequestBody DadosAtualizarCliente dados) {
+            @RequestBody DadosAtualizarClienteRequest dados) {
         Cliente cliente = service.atualizarCliente(id, dados);
-        return ResponseEntity.ok(new DadosDetalhamentoCliente(cliente));
+        return ResponseEntity.ok(new DadosDetalhamentoClienteResponse(cliente));
     }
 
     @DeleteMapping("/desativar/{id}")
