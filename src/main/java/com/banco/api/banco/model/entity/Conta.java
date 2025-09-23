@@ -1,5 +1,6 @@
 package com.banco.api.banco.model.entity;
 
+import com.banco.api.banco.controller.conta.request.DadosCadastroContaRequest;
 import com.banco.api.banco.enums.StatusConta;
 import com.banco.api.banco.enums.TipoConta;
 import jakarta.persistence.*;
@@ -10,13 +11,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 
-@Entity
-@Table(name = "Contas")
+@Entity(name = "Conta")
+@Table(name = "contas")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class Conta {
 
     @Id
@@ -28,13 +30,14 @@ public class Conta {
     @Enumerated(EnumType.STRING)
     private TipoConta tipoConta;
 
-    private String agencia;
+    private String agencia = "121";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id")
     private Cliente cliente;
 
-    private BigDecimal saldo;
+    @Builder.Default
+    private BigDecimal saldo = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
     private StatusConta status = StatusConta.ATIVO;
@@ -42,4 +45,7 @@ public class Conta {
     @CreationTimestamp
     private LocalDate dataCriacao;
 
+    public Conta(DadosCadastroContaRequest dados) {
+        this.tipoConta = dados.tipo();
+    }
 }

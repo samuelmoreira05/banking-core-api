@@ -1,8 +1,8 @@
 package com.banco.api.banco.model.entity;
 
-import com.banco.api.banco.enums.StatusConta;
-import com.banco.api.banco.controller.cliente.request.DadosAtualizarCliente;
-import com.banco.api.banco.controller.cliente.request.DadosCadastroRequest;
+import com.banco.api.banco.enums.StatusCliente;
+import com.banco.api.banco.controller.cliente.request.DadosAtualizarClienteRequest;
+import com.banco.api.banco.controller.cliente.request.DadosCadastroClienteRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -12,13 +12,14 @@ import org.hibernate.validator.constraints.NotBlank;
 
 import java.time.LocalDate;
 
-@Entity
-@Table(name = "Clientes")
+@Entity(name = "Cliente")
+@Table(name = "clientes")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class Cliente {
 
     @Id
@@ -44,7 +45,7 @@ public class Cliente {
     private String email;
 
     @Enumerated(EnumType.STRING)
-    private StatusConta status = StatusConta.ATIVO;
+    private StatusCliente status = StatusCliente.ATIVO;
 
     private String telefone;
     private String endereco;
@@ -52,23 +53,23 @@ public class Cliente {
     private LocalDate dataDesativacao;
     private LocalDate dataAtivacao;
 
-    public Cliente(DadosCadastroRequest dados) {
+    public Cliente(DadosCadastroClienteRequest dados) {
         this.nome = dados.nome();
         this.email = dados.email();
         this.cpf = dados.cpf();
         this.dataNascimento = dados.dataNascimento();
         this.endereco = dados.endereco();
         this.telefone = dados.telefone();
-        this.status = StatusConta.ATIVO;
+        this.status = StatusCliente.ATIVO;
     }
 
-    public void desativar() {
-        this.status = StatusConta.INATIVO;
+    public void bloquear() {
+        this.status = StatusCliente.BLOQUEADO;
         this.dataDesativacao = LocalDate.now();
     }
 
     public void ativar() {
-        this.status = StatusConta.ATIVO;
+        this.status = StatusCliente.ATIVO;
         this.dataAtivacao = LocalDate.now();
     }
 
@@ -76,7 +77,7 @@ public class Cliente {
        return LocalDate.now().getYear() - dataNascimento.getYear();
     }
 
-    public void atualizarCliente(DadosAtualizarCliente dados) {
+    public void atualizarCliente(DadosAtualizarClienteRequest dados) {
         if (dados.nome() != null) {
             this.nome = dados.nome();
         }
