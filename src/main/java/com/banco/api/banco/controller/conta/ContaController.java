@@ -1,8 +1,7 @@
 package com.banco.api.banco.controller.conta;
 
-import com.banco.api.banco.controller.conta.request.DadosCadastroConta;
-import com.banco.api.banco.controller.conta.response.DadosMostrarConta;
-import com.banco.api.banco.repository.ContaRepository;
+import com.banco.api.banco.controller.conta.request.DadosCadastroContaRequest;
+import com.banco.api.banco.controller.conta.response.DadosMostrarContaResponse;
 import com.banco.api.banco.service.ContaService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -22,10 +21,10 @@ public class ContaController {
 
     @PostMapping("/cadastro")
     @Transactional
-    public ResponseEntity<DadosMostrarConta> cadastroConta(
+    public ResponseEntity<DadosMostrarContaResponse> cadastroConta(
             @Valid
-            @RequestBody DadosCadastroConta dados){
-        DadosMostrarConta response = service.criarConta(dados);
+            @RequestBody DadosCadastroContaRequest dados){
+        DadosMostrarContaResponse response = service.criarConta(dados);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
