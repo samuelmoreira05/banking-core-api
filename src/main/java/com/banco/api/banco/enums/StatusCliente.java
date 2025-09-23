@@ -1,7 +1,7 @@
 package com.banco.api.banco.enums;
 
-public enum StatusConta {
+public enum StatusCliente {
     ATIVO,
-    INATIVO,
+    INADIMPLENTE,
     BLOQUEADO
 }
