@@ -1,28 +1,26 @@
 package com.banco.api.banco.controller.conta.response;
 
-import com.banco.api.banco.enums.StatusConta;
+import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.enums.TipoConta;
 import com.banco.api.banco.model.entity.Conta;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Locale;
 
-public record DadosMostrarConta(
+public record DadosMostrarContaResponse(
         String numeroConta,
         TipoConta tipo,
         String agencia,
         BigDecimal saldo,
-        StatusConta status,
+        StatusCliente status,
         LocalDate dataCriacao
 ) {
-    public DadosMostrarConta(Conta conta) {
+    public DadosMostrarContaResponse(Conta conta) {
         this(
           conta.getNumeroConta(),
           conta.getTipoConta(),
           conta.getAgencia(),
           conta.getSaldo(),
-          conta.getStatus(),
+          conta.getCliente().getStatus(),
           conta.getDataCriacao()
         );
     }

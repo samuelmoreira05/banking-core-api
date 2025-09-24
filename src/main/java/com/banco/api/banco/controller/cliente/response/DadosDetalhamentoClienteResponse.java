@@ -1,11 +1,11 @@
 package com.banco.api.banco.controller.cliente.response;
 
-import com.banco.api.banco.enums.StatusConta;
+import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.model.entity.Cliente;
 
 import java.time.LocalDate;
 
-public record DadosDetalhamentoCliente(
+public record DadosDetalhamentoClienteResponse(
         Long id,
         String nome,
         String email,
@@ -13,9 +13,9 @@ public record DadosDetalhamentoCliente(
         String cpf,
         String telefone,
         String endereco,
-        StatusConta status
+        StatusCliente status
 ) {
-    public DadosDetalhamentoCliente(Cliente cliente) {
+    public DadosDetalhamentoClienteResponse(Cliente cliente) {
         this(
                 cliente.getId(),
                 cliente.getNome(),
