@@ -1,14 +1,13 @@
 package com.banco.api.banco.service;
 
-import com.banco.api.banco.controller.conta.request.DadosCadastroConta;
-import com.banco.api.banco.controller.conta.response.DadosMostrarConta;
+import com.banco.api.banco.controller.conta.request.DadosCadastroContaRequest;
+import com.banco.api.banco.controller.conta.response.DadosMostrarContaResponse;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.ClienteRepository;
 import com.banco.api.banco.repository.ContaRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class ContaService {
@@ -21,8 +20,11 @@ public class ContaService {
         this.clienteRepository = clienteRepository;
     }
 
-    public DadosMostrarConta criarConta(DadosCadastroConta dados) {
-        Conta conta = repository.save(new Conta(dados));
-        return new DadosMostrarConta(conta);
+    public DadosMostrarContaResponse criarConta(DadosCadastroContaRequest dados) {
+        Cliente cliente = clienteRepository.findById(dados.clienteId())
+                .orElseThrow(() -> new EntityNotFoundException("Cliente não foi encontrado"));
+
+        Conta conta = repository.save(new Conta(dados, cliente));
+        return new DadosMostrarContaResponse(conta);
     }
 }
