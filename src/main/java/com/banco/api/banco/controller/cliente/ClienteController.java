@@ -25,7 +25,6 @@ public class ClienteController {
         this.service = service;}
 
     @PostMapping("/cadastrar")
-    @Transactional
     public ResponseEntity<DadosMostrarClienteResponse> cadastroCliente(
             @Valid
             @RequestBody DadosCadastroClienteRequest dados) {
@@ -42,7 +41,6 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}")
-    @Transactional
     public ResponseEntity atualizarCliente(
             @Valid
             @PathVariable Long id,
@@ -52,7 +50,6 @@ public class ClienteController {
     }
 
     @DeleteMapping("/desativar/{id}")
-    @Transactional
     public ResponseEntity<Void> desativarCliente(
             @PathVariable Long id
     ){

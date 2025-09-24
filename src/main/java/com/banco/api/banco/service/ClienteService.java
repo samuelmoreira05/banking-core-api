@@ -7,6 +7,7 @@ import com.banco.api.banco.controller.cliente.response.DadosListagemClienteRespo
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.repository.ClienteRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ public class ClienteService {
         this.repository = repository;
     }
 
+    @Transactionalgit a
     public DadosMostrarClienteResponse cadastraCliente(DadosCadastroClienteRequest dados) {
         Cliente cliente = repository.save(new Cliente(dados));
         return new DadosMostrarClienteResponse(cliente);
@@ -32,6 +34,7 @@ public class ClienteService {
         return clientePage.map(DadosListagemClienteResponse::new);
     }
 
+    @Transactional
     public Cliente atualizarCliente (Long id, DadosAtualizarClienteRequest dados){
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException ("Usuario não encontrado na base de dados!");
@@ -41,6 +44,7 @@ public class ClienteService {
         return repository.save(cliente);
     }
 
+    @Transactional
     public void desativarCliente (Long id) {
         Optional<Cliente> optionalCliente = repository.findById(id);
         if (optionalCliente.isPresent()) {
