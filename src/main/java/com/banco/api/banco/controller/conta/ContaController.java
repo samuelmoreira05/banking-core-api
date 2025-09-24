@@ -23,7 +23,6 @@ public class ContaController {
     }
 
     @PostMapping("/cadastro")
-    @Transactional
     public ResponseEntity<DadosMostrarContaResponse> cadastroConta(
             @Valid
             @RequestBody DadosCadastroContaRequest dados){
@@ -37,5 +36,13 @@ public class ContaController {
     ){
         Page<DadosListagemContasResponse> listagem = service.listarConta(pageable);
         return ResponseEntity.ok(listagem);
+    }
+
+    @DeleteMapping("/encerrar")
+    public ResponseEntity<Void> encerrarConta(
+            @PathVariable Long id
+    ){
+        service.encerraConta(id);
+        return ResponseEntity.ok().build();
     }
 }

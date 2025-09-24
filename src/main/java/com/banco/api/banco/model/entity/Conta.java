@@ -64,6 +64,17 @@ public class Conta {
         this.agencia = "121";
     }
 
+    public void encerraConta(){
+        if (saldo.compareTo(BigDecimal.ZERO) != 0) {
+            throw new IllegalStateException("A conta não pode ser encerrada se o saldo não estiver zerado!");
+        }
+        this.status = StatusConta.ENCERRADA;
+    }
+
+    public void suspendeConta(){
+        this.status = StatusConta.SUSPENSA;
+    }
+
     private String gerarNumero() {
         return cliente.getId() + "-" + System.currentTimeMillis();
     }
