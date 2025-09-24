@@ -1,9 +1,9 @@
 package com.banco.api.banco.service;
 
-import com.banco.api.banco.controller.cliente.request.DadosAtualizarClienteRequest;
-import com.banco.api.banco.controller.cliente.request.DadosCadastroClienteRequest;
-import com.banco.api.banco.controller.cliente.response.DadosMostrarClienteResponse;
-import com.banco.api.banco.controller.cliente.response.DadosListagemClienteResponse;
+import com.banco.api.banco.controller.cliente.request.DadosAtualizarCliente;
+import com.banco.api.banco.controller.cliente.request.DadosCadastroRequest;
+import com.banco.api.banco.controller.cliente.response.DadosCadastroResponse;
+import com.banco.api.banco.controller.cliente.response.DadosListagemClientes;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.repository.ClienteRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,17 +22,17 @@ public class ClienteService {
         this.repository = repository;
     }
 
-    public DadosMostrarClienteResponse cadastraCliente(DadosCadastroClienteRequest dados) {
+    public DadosCadastroResponse cadastraCliente(DadosCadastroRequest dados) {
         Cliente cliente = repository.save(new Cliente(dados));
-        return new DadosMostrarClienteResponse(cliente);
+        return new DadosCadastroResponse(cliente);
     }
 
-    public Page<DadosListagemClienteResponse> listaCliente(Pageable pageable){
+    public Page<DadosListagemClientes> listaCliente(Pageable pageable){
         Page<Cliente> clientePage = repository.findAll(pageable);
-        return clientePage.map(DadosListagemClienteResponse::new);
+        return clientePage.map(DadosListagemClientes::new);
     }
 
-    public Cliente atualizarCliente (Long id, DadosAtualizarClienteRequest dados){
+    public Cliente atualizarCliente (Long id,DadosAtualizarCliente dados){
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException ("Usuario não encontrado na base de dados!");
         }
@@ -45,7 +45,7 @@ public class ClienteService {
         Optional<Cliente> optionalCliente = repository.findById(id);
         if (optionalCliente.isPresent()) {
             Cliente cliente = optionalCliente.get();
-            cliente.bloquear();
+            cliente.desativar();
             repository.save(cliente);
         }
     }
