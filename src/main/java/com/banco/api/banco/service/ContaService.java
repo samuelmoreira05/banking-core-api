@@ -51,7 +51,6 @@ public class ContaService {
                 .orElseThrow(() -> new EntityNotFoundException("Conta não encontrada na base de dados: " + id));
 
             conta.encerraConta();
-            repository.save(conta);
     }
 
     @Transactional
@@ -60,7 +59,6 @@ public class ContaService {
                 .orElseThrow(() -> new EntityNotFoundException("Conta não encontrada na base de dados: " + id));
 
         conta.suspendeConta();
-        repository.save(conta);
     }
 
     @Transactional
@@ -69,6 +67,5 @@ public class ContaService {
                 .orElseThrow(() -> new EntityNotFoundException("Conta não encontrada na base de dados: " + id));
 
         conta.ativaConta();
-        repository.save(conta);
     }
 }

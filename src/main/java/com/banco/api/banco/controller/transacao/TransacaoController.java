@@ -29,4 +29,13 @@ public class TransacaoController {
         TransacaoMostrarDadosResponse response = service.deposito(dados);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @PostMapping("/sacar")
+    public ResponseEntity<TransacaoMostrarDadosResponse> saque(
+            @Valid
+            @RequestBody TransacaoEfetuarDadosRequest dados
+    ){
+        TransacaoMostrarDadosResponse response = service.saque(dados);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 }

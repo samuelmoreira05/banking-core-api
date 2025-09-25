@@ -11,6 +11,8 @@ public record TransacaoMostrarDadosResponse(
         TipoTransacao tipo,
         LocalDateTime dataTransacao,
         BigDecimal valor,
+        BigDecimal saldoAntes,
+        BigDecimal saldoAtual,
         TransacaoContaResumidaDadosResponse conta
 ) {
     public TransacaoMostrarDadosResponse(Transacao transacao) {
@@ -19,6 +21,8 @@ public record TransacaoMostrarDadosResponse(
                 transacao.getTipo(),
                 transacao.getDataTransacao(),
                 transacao.getValor(),
+                transacao.getSaldoAnterior(),
+                transacao.getConta().getSaldo(),
                 new TransacaoContaResumidaDadosResponse(
                         transacao.getConta().getNumeroConta(),
                         transacao.getConta().getAgencia()
