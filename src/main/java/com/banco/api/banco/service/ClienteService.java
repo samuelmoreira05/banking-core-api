@@ -26,7 +26,9 @@ public class ClienteService {
 
     @Transactional
     public ClienteMostrarDadosResponse cadastraCliente(ClienteCadastroDadosRequest dados) {
-
+        if (repository.existsByCpf(dados.cpf())){
+            throw new IllegalStateException("Esse CPF já existe na base de dados!");
+        }
         Cliente cliente = Cliente.builder()
                 .nome(dados.nome())
                 .cpf(dados.cpf())
