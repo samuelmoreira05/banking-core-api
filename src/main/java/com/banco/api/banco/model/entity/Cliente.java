@@ -1,8 +1,6 @@
 package com.banco.api.banco.model.entity;
 
 import com.banco.api.banco.enums.StatusCliente;
-import com.banco.api.banco.controller.cliente.request.DadosAtualizarClienteRequest;
-import com.banco.api.banco.controller.cliente.request.DadosCadastroClienteRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

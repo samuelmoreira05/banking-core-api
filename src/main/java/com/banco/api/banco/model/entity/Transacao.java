@@ -1,6 +1,5 @@
 package com.banco.api.banco.model.entity;
 
-import com.banco.api.banco.controller.transacao.request.DadosEfetuarTransacaoRequest;
 import com.banco.api.banco.enums.TipoTransacao;
 import jakarta.persistence.*;
 import lombok.*;

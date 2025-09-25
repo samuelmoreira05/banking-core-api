@@ -1,6 +1,6 @@
 package com.banco.api.banco.controller.transacao.response;
 
-public record DadosContaResumida(
+public record TransacaoContaResumidaDadosResponse(
         String numeroConta,
         String agencia
 ) {}

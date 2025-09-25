@@ -5,7 +5,7 @@ import com.banco.api.banco.model.entity.Cliente;
 
 import java.time.LocalDate;
 
-public record DadosDetalhamentoClienteResponse(
+public record ClienteDetalhamentoDadosResponse(
         Long id,
         String nome,
         String email,
@@ -15,7 +15,7 @@ public record DadosDetalhamentoClienteResponse(
         String endereco,
         StatusCliente status
 ) {
-    public DadosDetalhamentoClienteResponse(Cliente cliente) {
+    public ClienteDetalhamentoDadosResponse(Cliente cliente) {
         this(
                 cliente.getId(),
                 cliente.getNome(),

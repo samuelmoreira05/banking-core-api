@@ -1,7 +1,7 @@
 package com.banco.api.banco.service;
 
-import com.banco.api.banco.controller.transacao.request.DadosEfetuarTransacaoRequest;
-import com.banco.api.banco.controller.transacao.response.DadosMostrarTransacaoResponse;
+import com.banco.api.banco.controller.transacao.request.TransacaoEfetuarDadosRequest;
+import com.banco.api.banco.controller.transacao.response.TransacaoMostrarDadosResponse;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.model.entity.Transacao;
 import com.banco.api.banco.repository.ContaRepository;
@@ -24,7 +24,7 @@ public class TransacaoService {
     }
 
     @Transactional
-    public DadosMostrarTransacaoResponse deposito(DadosEfetuarTransacaoRequest dados){
+    public TransacaoMostrarDadosResponse deposito(TransacaoEfetuarDadosRequest dados){
         Conta conta = contaRepository.findById(dados.contaId())
                 .orElseThrow(() -> new EntityNotFoundException("A conta não foi encontrada"));
 
@@ -38,11 +38,11 @@ public class TransacaoService {
                 .build();
 
         repository.save(transacao);
-        return new DadosMostrarTransacaoResponse(transacao);
+        return new TransacaoMostrarDadosResponse(transacao);
     }
 
     @Transactional
-    public DadosMostrarTransacaoResponse saque(DadosEfetuarTransacaoRequest dados){
+    public TransacaoMostrarDadosResponse saque(TransacaoEfetuarDadosRequest dados){
         Conta conta = contaRepository.findById(dados.contaId())
                 .orElseThrow(() -> new EntityNotFoundException("A conta não foi encontrada"));
 
@@ -56,7 +56,7 @@ public class TransacaoService {
                 .build();
 
         repository.save(transacao);
-        return new DadosMostrarTransacaoResponse(transacao);
+        return new TransacaoMostrarDadosResponse(transacao);
     }
 }
 

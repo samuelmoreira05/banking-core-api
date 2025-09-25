@@ -1,9 +1,9 @@
 package com.banco.api.banco.service;
 
-import com.banco.api.banco.controller.cliente.request.DadosAtualizarClienteRequest;
-import com.banco.api.banco.controller.cliente.request.DadosCadastroClienteRequest;
-import com.banco.api.banco.controller.cliente.response.DadosMostrarClienteResponse;
-import com.banco.api.banco.controller.cliente.response.DadosListagemClienteResponse;
+import com.banco.api.banco.controller.cliente.request.ClienteAtualizarDadosRequest;
+import com.banco.api.banco.controller.cliente.request.ClienteCadastroDadosRequest;
+import com.banco.api.banco.controller.cliente.response.ClienteMostrarDadosResponse;
+import com.banco.api.banco.controller.cliente.response.ClienteListagemDadosResponse;
 import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.repository.ClienteRepository;
@@ -25,7 +25,7 @@ public class ClienteService {
     }
 
     @Transactional
-    public DadosMostrarClienteResponse cadastraCliente(DadosCadastroClienteRequest dados) {
+    public ClienteMostrarDadosResponse cadastraCliente(ClienteCadastroDadosRequest dados) {
 
         Cliente cliente = Cliente.builder()
                 .nome(dados.nome())
@@ -37,15 +37,15 @@ public class ClienteService {
                 .status(StatusCliente.ATIVO)
                 .build();
         repository.save(cliente);
-        return new DadosMostrarClienteResponse(cliente);
+        return new ClienteMostrarDadosResponse(cliente);
     }
 
-    public Page<DadosListagemClienteResponse> listaCliente(Pageable pageable){
-        return repository.findAll(pageable).map(DadosListagemClienteResponse::new);
+    public Page<ClienteListagemDadosResponse> listaCliente(Pageable pageable){
+        return repository.findAll(pageable).map(ClienteListagemDadosResponse::new);
     }
 
     @Transactional
-    public Cliente atualizarCliente (Long id, DadosAtualizarClienteRequest dados){
+    public Cliente atualizarCliente (Long id, ClienteAtualizarDadosRequest dados){
         Cliente cliente = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado na base de dados!"));
 

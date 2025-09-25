@@ -5,14 +5,14 @@ import com.banco.api.banco.model.entity.Cliente;
 
 import java.time.LocalDate;
 
-public record DadosListagemClienteResponse(
+public record ClienteListagemDadosResponse(
         Long id,
         String nome,
         String email,
         LocalDate dataNascimento,
         StatusCliente status
 ) {
-    public DadosListagemClienteResponse(Cliente cliente) {
+    public ClienteListagemDadosResponse(Cliente cliente) {
         this(cliente.getId(), cliente.getNome(), cliente.getEmail(), cliente.getDataNascimento(), cliente.getStatus());
     }
 }

@@ -7,7 +7,7 @@ import com.banco.api.banco.model.entity.Conta;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public record DadosMostrarContaResponse(
+public record ContaMostrarDadosResponse(
         String numeroConta,
         TipoConta tipo,
         String agencia,
@@ -16,7 +16,7 @@ public record DadosMostrarContaResponse(
         LocalDateTime dataCriacao,
         Cliente cliente
 ) {
-    public DadosMostrarContaResponse(Conta conta) {
+    public ContaMostrarDadosResponse(Conta conta) {
         this(
                 conta.getNumeroConta(),
                 conta.getTipoConta(),

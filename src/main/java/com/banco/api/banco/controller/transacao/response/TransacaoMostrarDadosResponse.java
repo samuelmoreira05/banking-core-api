@@ -6,20 +6,20 @@ import com.banco.api.banco.model.entity.Transacao;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public record DadosMostrarTransacaoResponse(
+public record TransacaoMostrarDadosResponse(
         Long idTransacao,
         TipoTransacao tipo,
         LocalDateTime dataTransacao,
         BigDecimal valor,
-        DadosContaResumida conta
+        TransacaoContaResumidaDadosResponse conta
 ) {
-    public DadosMostrarTransacaoResponse(Transacao transacao) {
+    public TransacaoMostrarDadosResponse(Transacao transacao) {
         this(
                 transacao.getId(),
                 transacao.getTipo(),
                 transacao.getDataTransacao(),
                 transacao.getValor(),
-                new DadosContaResumida(
+                new TransacaoContaResumidaDadosResponse(
                         transacao.getConta().getNumeroConta(),
                         transacao.getConta().getAgencia()
                 )

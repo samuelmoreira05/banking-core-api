@@ -1,8 +1,8 @@
 package com.banco.api.banco.service;
 
-import com.banco.api.banco.controller.conta.request.DadosCadastroContaRequest;
-import com.banco.api.banco.controller.conta.response.DadosListagemContasResponse;
-import com.banco.api.banco.controller.conta.response.DadosMostrarContaResponse;
+import com.banco.api.banco.controller.conta.request.ContaCadastroDadosRequest;
+import com.banco.api.banco.controller.conta.response.ContaListagemDadosResponse;
+import com.banco.api.banco.controller.conta.response.ContaMostrarDadosResponse;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.ClienteRepository;
@@ -13,8 +13,6 @@ import lombok.Builder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @Builder
@@ -29,7 +27,7 @@ public class ContaService {
     }
 
     @Transactional
-    public DadosMostrarContaResponse criarConta(DadosCadastroContaRequest dados) {
+    public ContaMostrarDadosResponse criarConta(ContaCadastroDadosRequest dados) {
         Cliente cliente = clienteRepository.findById(dados.clienteId())
                 .orElseThrow(() -> new EntityNotFoundException("Cliente não foi encontrado"));
 
@@ -39,12 +37,12 @@ public class ContaService {
                 .build();
 
         repository.save(conta);
-        return new DadosMostrarContaResponse(conta);
+        return new ContaMostrarDadosResponse(conta);
     }
 
-    public Page<DadosListagemContasResponse> listarConta(Pageable pageable) {
+    public Page<ContaListagemDadosResponse> listarConta(Pageable pageable) {
         Page<Conta> contaPage = repository.findAll(pageable);
-        return contaPage.map(DadosListagemContasResponse::new);
+        return contaPage.map(ContaListagemDadosResponse::new);
     }
 
     @Transactional

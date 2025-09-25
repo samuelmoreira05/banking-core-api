@@ -1,7 +1,7 @@
 package com.banco.api.banco.controller.transacao;
 
-import com.banco.api.banco.controller.transacao.request.DadosEfetuarTransacaoRequest;
-import com.banco.api.banco.controller.transacao.response.DadosMostrarTransacaoResponse;
+import com.banco.api.banco.controller.transacao.request.TransacaoEfetuarDadosRequest;
+import com.banco.api.banco.controller.transacao.response.TransacaoMostrarDadosResponse;
 import com.banco.api.banco.service.TransacaoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -22,11 +22,11 @@ public class TransacaoController {
     }
 
     @PostMapping("/depositar")
-    public ResponseEntity<DadosMostrarTransacaoResponse> deposito(
+    public ResponseEntity<TransacaoMostrarDadosResponse> deposito(
             @Valid
-            @RequestBody DadosEfetuarTransacaoRequest dados
+            @RequestBody TransacaoEfetuarDadosRequest dados
             ) {
-        DadosMostrarTransacaoResponse response = service.deposito(dados);
+        TransacaoMostrarDadosResponse response = service.deposito(dados);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

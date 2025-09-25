@@ -1,8 +1,8 @@
 package com.banco.api.banco.controller.conta;
 
-import com.banco.api.banco.controller.conta.request.DadosCadastroContaRequest;
-import com.banco.api.banco.controller.conta.response.DadosListagemContasResponse;
-import com.banco.api.banco.controller.conta.response.DadosMostrarContaResponse;
+import com.banco.api.banco.controller.conta.request.ContaCadastroDadosRequest;
+import com.banco.api.banco.controller.conta.response.ContaListagemDadosResponse;
+import com.banco.api.banco.controller.conta.response.ContaMostrarDadosResponse;
 import com.banco.api.banco.service.ContaService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -22,18 +22,18 @@ public class ContaController {
     }
 
     @PostMapping("/cadastro")
-    public ResponseEntity<DadosMostrarContaResponse> cadastroConta(
+    public ResponseEntity<ContaMostrarDadosResponse> cadastroConta(
             @Valid
-            @RequestBody DadosCadastroContaRequest dados){
-        DadosMostrarContaResponse response = service.criarConta(dados);
+            @RequestBody ContaCadastroDadosRequest dados){
+        ContaMostrarDadosResponse response = service.criarConta(dados);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/listar")
-    public ResponseEntity<Page<DadosListagemContasResponse>> listarConta(
+    public ResponseEntity<Page<ContaListagemDadosResponse>> listarConta(
             Pageable pageable
     ){
-        Page<DadosListagemContasResponse> listagem = service.listarConta(pageable);
+        Page<ContaListagemDadosResponse> listagem = service.listarConta(pageable);
         return ResponseEntity.ok(listagem);
     }
 
