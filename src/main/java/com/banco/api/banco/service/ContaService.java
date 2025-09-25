@@ -9,6 +9,7 @@ import com.banco.api.banco.repository.ClienteRepository;
 import com.banco.api.banco.repository.ContaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import lombok.Builder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
+@Builder
 public class ContaService {
 
     private final ContaRepository repository;
@@ -31,7 +33,12 @@ public class ContaService {
         Cliente cliente = clienteRepository.findById(dados.clienteId())
                 .orElseThrow(() -> new EntityNotFoundException("Cliente não foi encontrado"));
 
-        Conta conta = repository.save(new Conta(dados, cliente));
+        Conta conta = Conta.builder()
+                .cliente(cliente)
+                .tipoConta(dados.tipo())
+                .build();
+
+        repository.save(conta);
         return new DadosMostrarContaResponse(conta);
     }
 

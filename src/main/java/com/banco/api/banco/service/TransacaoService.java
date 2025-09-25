@@ -2,7 +2,6 @@ package com.banco.api.banco.service;
 
 import com.banco.api.banco.controller.transacao.request.DadosEfetuarTransacaoRequest;
 import com.banco.api.banco.controller.transacao.response.DadosMostrarTransacaoResponse;
-import com.banco.api.banco.enums.StatusConta;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.model.entity.Transacao;
 import com.banco.api.banco.repository.ContaRepository;
@@ -27,18 +26,37 @@ public class TransacaoService {
     @Transactional
     public DadosMostrarTransacaoResponse deposito(DadosEfetuarTransacaoRequest dados){
         Conta conta = contaRepository.findById(dados.contaId())
-                .orElseThrow(() -> new EntityNotFoundException("A conta não foi encontrada na base de dados"));
+                .orElseThrow(() -> new EntityNotFoundException("A conta não foi encontrada"));
 
-        if (conta.getStatus() != StatusConta.ATIVO) {
-            throw new IllegalStateException("Conta não pode efetuar transação(nào está ativa)");
-        }
+        BigDecimal saldoAntes = conta.getSaldo();
+        conta.depositar(dados.valor());
+        Transacao transacao = Transacao.builder()
+                .conta(conta)
+                .tipo(dados.tipo())
+                .valor(dados.valor())
+                .saldoAnterior(saldoAntes)
+                .build();
 
-        Transacao transacao = repository.save(new Transacao(dados, conta));
+        repository.save(transacao);
+        return new DadosMostrarTransacaoResponse(transacao);
+    }
 
-        BigDecimal novoSaldo = conta.getSaldo().add(dados.valor());
-        conta.setSaldo(novoSaldo);
-        contaRepository.save(conta);
+    @Transactional
+    public DadosMostrarTransacaoResponse saque(DadosEfetuarTransacaoRequest dados){
+        Conta conta = contaRepository.findById(dados.contaId())
+                .orElseThrow(() -> new EntityNotFoundException("A conta não foi encontrada"));
 
+        BigDecimal saldoAntes = conta.getSaldo();
+        conta.sacar(dados.valor());
+        Transacao transacao = Transacao.builder()
+                .conta(conta)
+                .tipo(dados.tipo())
+                .valor(dados.valor())
+                .saldoAnterior(saldoAntes)
+                .build();
+
+        repository.save(transacao);
         return new DadosMostrarTransacaoResponse(transacao);
     }
 }
+

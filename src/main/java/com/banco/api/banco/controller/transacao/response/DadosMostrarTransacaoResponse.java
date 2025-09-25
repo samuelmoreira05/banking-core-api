@@ -1,7 +1,6 @@
 package com.banco.api.banco.controller.transacao.response;
 
 import com.banco.api.banco.enums.TipoTransacao;
-import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.model.entity.Transacao;
 
 import java.math.BigDecimal;

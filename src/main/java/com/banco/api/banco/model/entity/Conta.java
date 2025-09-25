@@ -1,6 +1,5 @@
 package com.banco.api.banco.model.entity;
 
-import com.banco.api.banco.controller.conta.request.DadosCadastroContaRequest;
 import com.banco.api.banco.enums.StatusConta;
 import com.banco.api.banco.enums.TipoConta;
 import jakarta.persistence.*;
@@ -8,8 +7,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 
 @Entity(name = "Conta")
@@ -33,6 +32,7 @@ public class Conta {
     @Column(name = "tipo_conta", nullable = false)
     private TipoConta tipoConta;
 
+    @Builder.Default
     @Column(name = "agencia")
     private String agencia = "121";
 
@@ -44,53 +44,68 @@ public class Conta {
     @Column(nullable = false)
     private BigDecimal saldo = BigDecimal.ZERO;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private StatusConta status = StatusConta.ATIVO;
 
     @CreationTimestamp
     private LocalDateTime dataCriacao;
 
-    public Conta(DadosCadastroContaRequest dados, Cliente cliente) {
-        if (dados.tipo() == null) {
-            throw new IllegalArgumentException("Tipo de conta é obrigatorio");
-        }
-        this.tipoConta = dados.tipo();
-        this.cliente = cliente;
-        this.numeroConta = gerarNumero();
-        this.saldo = BigDecimal.ZERO;
-        this.status = StatusConta.ATIVO;
-        this.agencia = "121";
-    }
-
     public void encerraConta(){
         if (this.status == StatusConta.ENCERRADA) {
-            throw new IllegalStateException("A conta já está com status de encerrada!");
+            throw new IllegalStateException("A conta já está encerrada.");
         }
         if (saldo.compareTo(BigDecimal.ZERO) != 0) {
-            throw new IllegalStateException("A conta não pode ser encerrada se o saldo não estiver zerado!");
+            throw new IllegalStateException("A conta não pode ser encerrada com saldo diferente de zero.");
         }
         this.status = StatusConta.ENCERRADA;
     }
 
     public void suspendeConta(){
-        if (this.status == StatusConta.ENCERRADA) {
-            throw new IllegalStateException("A conta já se encontra encerrada!");
+        if (this.status == StatusConta.SUSPENSA || this.status == StatusConta.ENCERRADA) {
+            throw new IllegalStateException("A conta não pode ser suspensa.");
         }
-        if (this.status == StatusConta.SUSPENSA) {
-            throw new IllegalStateException("A conta já está com status de encerrada!");
-        }
-
         this.status = StatusConta.SUSPENSA;
     }
 
     public void ativaConta(){
         if (this.status == StatusConta.ATIVO) {
-            throw new IllegalStateException("A conta já está com status de ativa!");
+            throw new IllegalStateException("A conta já está ativa.");
         }
         this.status = StatusConta.ATIVO;
     }
 
+    public void sacar(BigDecimal valor){
+        if (this.status != StatusConta.ATIVO){
+            throw new IllegalStateException("A conta precisa estar ATIVA para realizar saques.");
+        }
+        if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("O valor do saque deve ser positivo.");
+        }
+        if (this.saldo.compareTo(valor) < 0){
+            throw new IllegalStateException("Saldo insuficiente.");
+        }
+        this.saldo = this.saldo.subtract(valor);
+    }
+
+    public void depositar(BigDecimal valor) {
+        if (this.status != StatusConta.ATIVO){
+            throw new IllegalStateException("A conta precisa estar ATIVA para receber depósitos.");
+        }
+        if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("O valor do depósito deve ser positivo.");
+        }
+        this.saldo = this.saldo.add(valor);
+    }
+
+    @PrePersist
+    public void antesDeSalvar() {
+        if (this.numeroConta == null) {
+            this.numeroConta = gerarNumero();
+        }
+    }
+
     private String gerarNumero() {
-        return cliente.getId() + "-" + System.currentTimeMillis();
+        return "ACC-" + UUID.randomUUID().toString().toUpperCase().substring(0, 8);
     }
 }

@@ -12,6 +12,7 @@ import org.hibernate.validator.constraints.NotBlank;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 
 @Entity(name = "Cliente")
 @Table(name = "clientes")
@@ -54,16 +55,6 @@ public class Cliente {
     private LocalDate dataDesativacao;
     private LocalDate dataAtivacao;
 
-    public Cliente(DadosCadastroClienteRequest dados) {
-        this.nome = dados.nome();
-        this.email = dados.email();
-        this.cpf = dados.cpf();
-        this.dataNascimento = dados.dataNascimento();
-        this.endereco = dados.endereco();
-        this.telefone = dados.telefone();
-        this.status = StatusCliente.ATIVO;
-    }
-
     public void bloquear() {
         this.status = StatusCliente.BLOQUEADO;
         this.dataDesativacao = LocalDate.now();
@@ -75,21 +66,9 @@ public class Cliente {
     }
 
     public int getIdade() {
-       return LocalDate.now().getYear() - dataNascimento.getYear();
-    }
-
-    public void atualizarCliente(DadosAtualizarClienteRequest dados) {
-        if (dados.nome() != null) {
-            this.nome = dados.nome();
+        if (this.dataNascimento == null) {
+            return 0;
         }
-        if (dados.endereco() != null) {
-            this.endereco = dados.endereco();
-        }
-        if (dados.email() != null) {
-            this.email = dados.email();
-        }
-        if (dados.telefone() != null) {
-            this.telefone = dados.telefone();
-        }
+        return Period.between(this.dataNascimento, LocalDate.now()).getYears();
     }
 }

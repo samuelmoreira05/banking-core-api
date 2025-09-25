@@ -4,6 +4,7 @@ import com.banco.api.banco.controller.cliente.request.DadosAtualizarClienteReque
 import com.banco.api.banco.controller.cliente.request.DadosCadastroClienteRequest;
 import com.banco.api.banco.controller.cliente.response.DadosMostrarClienteResponse;
 import com.banco.api.banco.controller.cliente.response.DadosListagemClienteResponse;
+import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.repository.ClienteRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,23 +26,43 @@ public class ClienteService {
 
     @Transactional
     public DadosMostrarClienteResponse cadastraCliente(DadosCadastroClienteRequest dados) {
-        Cliente cliente = repository.save(new Cliente(dados));
+
+        Cliente cliente = Cliente.builder()
+                .nome(dados.nome())
+                .cpf(dados.cpf())
+                .email(dados.email())
+                .dataNascimento(dados.dataNascimento())
+                .endereco(dados.endereco())
+                .telefone(dados.telefone())
+                .status(StatusCliente.ATIVO)
+                .build();
+        repository.save(cliente);
         return new DadosMostrarClienteResponse(cliente);
     }
 
     public Page<DadosListagemClienteResponse> listaCliente(Pageable pageable){
-        Page<Cliente> clientePage = repository.findAll(pageable);
-        return clientePage.map(DadosListagemClienteResponse::new);
+        return repository.findAll(pageable).map(DadosListagemClienteResponse::new);
     }
 
     @Transactional
     public Cliente atualizarCliente (Long id, DadosAtualizarClienteRequest dados){
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException ("Usuario não encontrado na base de dados!");
+        Cliente cliente = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado na base de dados!"));
+
+        if (dados.nome() != null) {
+            cliente.setNome(dados.nome());
         }
-        Cliente cliente = repository.getReferenceById(id);
-        cliente.atualizarCliente(dados);
-        return repository.save(cliente);
+        if (dados.endereco() != null) {
+            cliente.setEndereco(dados.endereco());
+        }
+        if (dados.email() != null) {
+            cliente.setEmail(dados.email());
+        }
+        if (dados.telefone() != null) {
+            cliente.setTelefone(dados.telefone());
+        }
+
+        return cliente;
     }
 
     @Transactional
