@@ -48,4 +48,13 @@ public class ContaService {
             conta.encerraConta();
             repository.save(conta);
     }
+
+    @Transactional
+    public void suspendeConta(Long id){
+        Conta conta = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Conta não encontrada na base de dados: " + id));
+
+        conta.suspendeConta();
+        repository.save(conta);
+    }
 }

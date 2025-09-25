@@ -23,7 +23,7 @@ public class ClienteService {
         this.repository = repository;
     }
 
-    @Transactionalgit a
+    @Transactional
     public DadosMostrarClienteResponse cadastraCliente(DadosCadastroClienteRequest dados) {
         Cliente cliente = repository.save(new Cliente(dados));
         return new DadosMostrarClienteResponse(cliente);

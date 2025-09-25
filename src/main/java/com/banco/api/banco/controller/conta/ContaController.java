@@ -45,4 +45,12 @@ public class ContaController {
         service.encerraConta(id);
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/suspender")
+    public ResponseEntity<Void> suspendeConta(
+            @PathVariable Long id
+    ){
+        service.suspendeConta(id);
+        return ResponseEntity.ok().build();
+    }
 }

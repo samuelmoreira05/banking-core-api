@@ -65,6 +65,9 @@ public class Conta {
     }
 
     public void encerraConta(){
+        if (this.status == StatusConta.ENCERRADA) {
+            throw new IllegalStateException("A conta já está com status de encerrada!");
+        }
         if (saldo.compareTo(BigDecimal.ZERO) != 0) {
             throw new IllegalStateException("A conta não pode ser encerrada se o saldo não estiver zerado!");
         }
@@ -72,6 +75,13 @@ public class Conta {
     }
 
     public void suspendeConta(){
+        if (this.status == StatusConta.ENCERRADA) {
+            throw new IllegalStateException("A conta já se encontra encerrada!");
+        }
+        if (this.status == StatusConta.SUSPENSA) {
+            throw new IllegalStateException("A conta já está com status de encerrada!");
+        }
+
         this.status = StatusConta.SUSPENSA;
     }
 
