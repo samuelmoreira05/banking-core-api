@@ -48,10 +48,6 @@ public class Conta {
     @CreationTimestamp
     private LocalDate dataCriacao;
 
-    public Conta(DadosCadastroContaRequest dados) {
-        this.tipoConta = dados.tipo();
-    }
-
     public Conta(DadosCadastroContaRequest dados, Cliente cliente) {
         if (dados.tipo() == null) {
             throw new IllegalArgumentException("Tipo de conta é obrigatorio");

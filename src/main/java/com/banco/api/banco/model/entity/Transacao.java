@@ -1,5 +1,6 @@
 package com.banco.api.banco.model.entity;
 
+import com.banco.api.banco.controller.transacao.request.DadosEfetuarTransacaoRequest;
 import com.banco.api.banco.enums.TipoTransacao;
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,4 +39,14 @@ public class Transacao {
     private BigDecimal saldoAnterior;
 
 
+    public Transacao(DadosEfetuarTransacaoRequest dados, Conta conta) {
+       if (this.tipo == null) {
+           throw new IllegalArgumentException("É necessario escolher um tipo de transacao");
+       }
+       if (dados.valor() == null || dados.valor().compareTo(BigDecimal.ZERO) <= 0) {
+           throw new IllegalArgumentException("Valor deve ser maior que zero");
+       }
+       this.id = dados.id();
+       this.tipo = getTipo();
+    }
 }
