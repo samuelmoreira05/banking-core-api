@@ -5,7 +5,7 @@ import com.banco.api.banco.enums.TipoConta;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record DadosMostrarContaResponse(
         String numeroConta,
@@ -13,7 +13,7 @@ public record DadosMostrarContaResponse(
         String agencia,
         BigDecimal saldo,
         StatusCliente status,
-        LocalDate dataCriacao,
+        LocalDateTime dataCriacao,
         Cliente cliente
 ) {
     public DadosMostrarContaResponse(Conta conta) {

@@ -4,7 +4,6 @@ import com.banco.api.banco.controller.conta.request.DadosCadastroContaRequest;
 import com.banco.api.banco.controller.conta.response.DadosListagemContasResponse;
 import com.banco.api.banco.controller.conta.response.DadosMostrarContaResponse;
 import com.banco.api.banco.service.ContaService;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

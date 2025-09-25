@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 
 @Entity(name = "Conta")
@@ -40,13 +41,14 @@ public class Conta {
     private Cliente cliente;
 
     @Builder.Default
+    @Column(nullable = false)
     private BigDecimal saldo = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
     private StatusConta status = StatusConta.ATIVO;
 
     @CreationTimestamp
-    private LocalDate dataCriacao;
+    private LocalDateTime dataCriacao;
 
     public Conta(DadosCadastroContaRequest dados, Cliente cliente) {
         if (dados.tipo() == null) {
