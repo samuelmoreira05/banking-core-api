@@ -11,6 +11,7 @@ import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity(name = "Cliente")
 @Table(name = "clientes")
@@ -39,7 +40,7 @@ public class Cliente {
     private LocalDate dataNascimento;
 
     @CreationTimestamp
-    private LocalDate dataCadastro;
+    private LocalDateTime dataCadastro;
 
     @Email(message = "O email deve ter um formato valido!")
     private String email;
