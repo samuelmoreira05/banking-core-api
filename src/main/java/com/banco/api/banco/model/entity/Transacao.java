@@ -40,13 +40,15 @@ public class Transacao {
 
 
     public Transacao(DadosEfetuarTransacaoRequest dados, Conta conta) {
-       if (this.tipo == null) {
+       if (dados.tipo() == null) {
            throw new IllegalArgumentException("É necessario escolher um tipo de transacao");
        }
        if (dados.valor() == null || dados.valor().compareTo(BigDecimal.ZERO) <= 0) {
            throw new IllegalArgumentException("Valor deve ser maior que zero");
        }
-       this.id = dados.id();
-       this.tipo = getTipo();
+        this.tipo = dados.tipo();
+        this.valor = dados.valor();
+        this.conta = conta;
+        this.saldoAnterior = conta.getSaldo();
     }
 }
