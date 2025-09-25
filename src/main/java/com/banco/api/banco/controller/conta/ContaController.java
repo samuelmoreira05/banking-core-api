@@ -53,4 +53,12 @@ public class ContaController {
         service.suspendeConta(id);
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/ativar")
+    public ResponseEntity<Void> ativaConta(
+            @PathVariable Long id
+    ){
+        service.ativaConta(id);
+        return ResponseEntity.ok().build();
+    }
 }

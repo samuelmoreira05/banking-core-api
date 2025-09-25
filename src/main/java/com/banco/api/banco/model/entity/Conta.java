@@ -85,6 +85,13 @@ public class Conta {
         this.status = StatusConta.SUSPENSA;
     }
 
+    public void ativaConta(){
+        if (this.status == StatusConta.ATIVO) {
+            throw new IllegalStateException("A conta já está com status de ativa!");
+        }
+        this.status = StatusConta.ATIVO;
+    }
+
     private String gerarNumero() {
         return cliente.getId() + "-" + System.currentTimeMillis();
     }
