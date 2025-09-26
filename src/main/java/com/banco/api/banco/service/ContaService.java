@@ -9,13 +9,11 @@ import com.banco.api.banco.repository.ClienteRepository;
 import com.banco.api.banco.repository.ContaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import lombok.Builder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
-@Builder
 public class ContaService {
 
     private final ContaRepository repository;
