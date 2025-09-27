@@ -6,11 +6,13 @@ import com.banco.api.banco.controller.cliente.response.ClienteMostrarDadosRespon
 import com.banco.api.banco.controller.cliente.response.ClienteListagemDadosResponse;
 import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.model.entity.Cliente;
+import com.banco.api.banco.model.entity.Usuario;
 import com.banco.api.banco.repository.ClienteRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -19,9 +21,11 @@ import java.util.Optional;
 public class ClienteService {
 
     private final ClienteRepository repository;
+    private final PasswordEncoder passwordEncoder;
 
-    public ClienteService(ClienteRepository repository) {
+    public ClienteService(ClienteRepository repository, PasswordEncoder passwordEncoder) {
         this.repository = repository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -29,6 +33,15 @@ public class ClienteService {
         if (repository.existsByCpf(dados.cpf())){
             throw new IllegalStateException("Esse CPF já existe na base de dados!");
         }
+
+        var senhaHash = passwordEncoder.encode(dados.senha());
+
+        Usuario usuario = Usuario.builder()
+                .login(dados.login())
+                .senha(senhaHash)
+                .role("USER")
+                .build();
+
         Cliente cliente = Cliente.builder()
                 .nome(dados.nome())
                 .cpf(dados.cpf())
@@ -37,11 +50,11 @@ public class ClienteService {
                 .endereco(dados.endereco())
                 .telefone(dados.telefone())
                 .status(StatusCliente.ATIVO)
+                .usuario(usuario)
                 .build();
         repository.save(cliente);
         return new ClienteMostrarDadosResponse(cliente);
     }
-
     public Page<ClienteListagemDadosResponse> listaCliente(Pageable pageable){
         return repository.findAll(pageable).map(ClienteListagemDadosResponse::new);
     }

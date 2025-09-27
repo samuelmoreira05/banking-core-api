@@ -1,7 +1,6 @@
 package com.banco.api.banco.controller.usuario;
 
 import com.banco.api.banco.controller.usuario.request.UsuarioAutenticacaoDadosRequest;
-import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

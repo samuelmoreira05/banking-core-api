@@ -8,6 +8,8 @@ public record ClienteCadastroDadosRequest(
         String cpf,
         String telefone,
         String endereco,
-        LocalDate dataNascimento
+        LocalDate dataNascimento,
+        String login,
+        String senha
 ) {
 }
