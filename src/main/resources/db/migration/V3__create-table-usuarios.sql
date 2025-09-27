@@ -1,25 +1,7 @@
-CREATE TABLE clientes (
+CREATE TABLE usuarios (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    cpf VARCHAR(11) NOT NULL UNIQUE,
-    data_nascimento DATE NOT NULL,
-    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    email VARCHAR(255),
-    status ENUM('ATIVO', 'INADIMPLENTE', 'BLOQUEADO') DEFAULT 'ATIVO',
-    telefone VARCHAR(20),
-    endereco VARCHAR(255),
-    data_desativacao DATE,
-    data_ativacao DATE
+    senha VARCHAR(255) NOT NULL,
+    login VARCHAR(255) NOT NULL UNIQUE,
+    role VARCHAR(50) NOT NULL DEFAULT 'USER'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE contas (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    numero_conta VARCHAR(20) NOT NULL UNIQUE,
-    tipo_conta ENUM('CONTA_CORRENTE', 'POUPANCA', 'INVESTIMENTO') NOT NULL,
-    agencia VARCHAR(10) DEFAULT '121',
-    cliente_id BIGINT NOT NULL,
-    saldo DECIMAL(15,2) DEFAULT 0.00,
-    status ENUM('ATIVO', 'ENCERRADA', 'SUSPENSA') DEFAULT 'ATIVO',
-    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_conta_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
