@@ -53,6 +53,10 @@ public class Cliente {
     private LocalDate dataDesativacao;
     private LocalDate dataAtivacao;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "usuario_id", referencedColumnName = "id")
+    private Usuario usuario;
+
     public void bloquear() {
         this.status = StatusCliente.BLOQUEADO;
         this.dataDesativacao = LocalDate.now();
