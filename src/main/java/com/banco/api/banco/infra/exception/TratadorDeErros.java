@@ -1,4 +1,4 @@
-package com.banco.api.banco.infra;
+package com.banco.api.banco.infra.exception;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.ResponseEntity;
