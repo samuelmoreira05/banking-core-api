@@ -1,6 +1,9 @@
 package com.banco.api.banco.controller.usuario;
 
 import com.banco.api.banco.controller.usuario.request.UsuarioAutenticacaoDadosRequest;
+import com.banco.api.banco.infra.security.TokenSecurity;
+import com.banco.api.banco.model.entity.Usuario;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,16 +17,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class UsuarioAutenticacaoController {
 
     private final AuthenticationManager manager;
+    private final TokenSecurity security;
 
-    public UsuarioAutenticacaoController(AuthenticationManager manager) {
+    public UsuarioAutenticacaoController(AuthenticationManager manager, TokenSecurity security) {
         this.manager = manager;
+        this.security = security;
     }
 
     @PostMapping("/login")
     public ResponseEntity loginUsuario(
+            @Valid
             @RequestBody  UsuarioAutenticacaoDadosRequest dados){
         var token = new UsernamePasswordAuthenticationToken(dados.login(), dados.senha());
         var authentication = manager.authenticate(token);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(security.geraToken((Usuario) authentication.getPrincipal()));
     }
 }
