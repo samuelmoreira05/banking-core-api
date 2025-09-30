@@ -1,6 +1,7 @@
 package com.banco.api.banco.controller.usuario;
 
 import com.banco.api.banco.controller.usuario.request.UsuarioAutenticacaoDadosRequest;
+import com.banco.api.banco.controller.usuario.response.GeraTokenResponse;
 import com.banco.api.banco.infra.security.TokenSecurity;
 import com.banco.api.banco.model.entity.Usuario;
 import jakarta.validation.Valid;
@@ -30,6 +31,8 @@ public class UsuarioAutenticacaoController {
             @RequestBody  UsuarioAutenticacaoDadosRequest dados){
         var token = new UsernamePasswordAuthenticationToken(dados.login(), dados.senha());
         var authentication = manager.authenticate(token);
-        return ResponseEntity.ok(security.geraToken((Usuario) authentication.getPrincipal()));
+        var jwtToken = security.geraToken((Usuario) authentication.getPrincipal());
+
+        return ResponseEntity.ok(new GeraTokenResponse(jwtToken));
     }
 }
