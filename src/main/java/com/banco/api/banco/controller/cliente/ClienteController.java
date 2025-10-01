@@ -48,11 +48,19 @@ public class ClienteController {
         return ResponseEntity.ok(new ClienteDetalhamentoDadosResponse(cliente));
     }
 
-    @DeleteMapping("/desativar/{id}")
-    public ResponseEntity<Void> desativarCliente(
+    @DeleteMapping("/bloquear/{id}")
+    public ResponseEntity<Void> bloquearCliente(
             @PathVariable Long id
     ){
-        service.desativarCliente(id);
+        service.bloquear(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/inadimplencia/{id}")
+    public ResponseEntity clienteInadimplente(
+            @PathVariable Long id
+    ){
+        service.inadimplencia(id);
         return ResponseEntity.noContent().build();
     }
 }

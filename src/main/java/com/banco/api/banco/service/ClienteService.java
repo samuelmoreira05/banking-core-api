@@ -81,11 +81,21 @@ public class ClienteService {
     }
 
     @Transactional
-    public void desativarCliente (Long id) {
+    public void bloquear (Long id) {
         Optional<Cliente> optionalCliente = repository.findById(id);
         if (optionalCliente.isPresent()) {
             Cliente cliente = optionalCliente.get();
             cliente.bloquear();
+            repository.save(cliente);
+        }
+    }
+
+    @Transactional
+    public void inadimplencia(Long id) {
+        Optional<Cliente> optionalCliente = repository.findById(id);
+        if (optionalCliente.isPresent()){
+            Cliente cliente = optionalCliente.get();
+            cliente.inadimplencia();
             repository.save(cliente);
         }
     }

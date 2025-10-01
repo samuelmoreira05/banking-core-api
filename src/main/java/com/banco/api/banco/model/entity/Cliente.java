@@ -1,6 +1,7 @@
 package com.banco.api.banco.model.entity;
 
 import com.banco.api.banco.enums.StatusCliente;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -36,6 +37,7 @@ public class Cliente {
 
     @Column(nullable = false)
     @NotNull(message = "A data de nascimento é obrigatoria")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
     private LocalDate dataNascimento;
 
     @CreationTimestamp
@@ -60,6 +62,11 @@ public class Cliente {
     public void bloquear() {
         this.status = StatusCliente.BLOQUEADO;
         this.dataDesativacao = LocalDate.now();
+    }
+
+    public void inadimplencia() {
+        this.status = StatusCliente.INADIMPLENTE;
+        this.dataAtivacao = LocalDate.now();
     }
 
     public void ativar() {
