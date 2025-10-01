@@ -21,21 +21,12 @@ public class TransacaoController {
         this.service = service;
     }
 
-    @PostMapping("/depositar")
-    public ResponseEntity<TransacaoMostrarDadosResponse> deposito(
-            @Valid
-            @RequestBody TransacaoEfetuarDadosRequest dados
-            ) {
-        TransacaoMostrarDadosResponse response = service.deposito(dados);
+    @PostMapping
+    public ResponseEntity<TransacaoMostrarDadosResponse> efetuarTransacao(
+            @Valid @RequestBody TransacaoEfetuarDadosRequest dados
+    ) {
+        TransacaoMostrarDadosResponse response = service.efetuarTransacao(dados);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/sacar")
-    public ResponseEntity<TransacaoMostrarDadosResponse> saque(
-            @Valid
-            @RequestBody TransacaoEfetuarDadosRequest dados
-    ){
-        TransacaoMostrarDadosResponse response = service.saque(dados);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
 }

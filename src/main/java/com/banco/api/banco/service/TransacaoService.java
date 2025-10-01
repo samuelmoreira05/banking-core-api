@@ -2,6 +2,7 @@ package com.banco.api.banco.service;
 
 import com.banco.api.banco.controller.transacao.request.TransacaoEfetuarDadosRequest;
 import com.banco.api.banco.controller.transacao.response.TransacaoMostrarDadosResponse;
+import com.banco.api.banco.enums.TipoTransacao;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.model.entity.Transacao;
 import com.banco.api.banco.repository.ContaRepository;
@@ -24,39 +25,39 @@ public class TransacaoService {
     }
 
     @Transactional
-    public TransacaoMostrarDadosResponse deposito(TransacaoEfetuarDadosRequest dados){
+     public TransacaoMostrarDadosResponse efetuarTransacao(TransacaoEfetuarDadosRequest dados){
+        if (dados.valor().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("O valor da transacao deve ser positivo");
+        }
+
         Conta conta = contaRepository.findById(dados.contaId())
-                .orElseThrow(() -> new EntityNotFoundException("A conta não foi encontrada"));
+                .orElseThrow(() -> new IllegalStateException("A conta não foi encontrada na base de dados"));
 
         BigDecimal saldoAntes = conta.getSaldo();
-        conta.depositar(dados.valor());
+
+        if (dados.tipo() == TipoTransacao.DEPOSITO){
+            conta.depositar(dados.valor());
+        } else if (dados.tipo() == TipoTransacao.SAQUE) {
+            conta.sacar(dados.valor());
+        }else {
+            throw new UnsupportedOperationException("Tipo de transação não suportada: " + dados.tipo());
+        }
+
+        Transacao transacao = salvarTransacao(conta, dados, saldoAntes);
+
+        return new TransacaoMostrarDadosResponse(transacao);
+    }
+
+    private Transacao salvarTransacao(Conta conta, TransacaoEfetuarDadosRequest dados, BigDecimal saldoAnterior){
         Transacao transacao = Transacao.builder()
                 .conta(conta)
                 .tipo(dados.tipo())
                 .valor(dados.valor())
-                .saldoAnterior(saldoAntes)
+                .saldoAnterior(saldoAnterior)
                 .build();
-
-        repository.save(transacao);
-        return new TransacaoMostrarDadosResponse(transacao);
+        return repository.save(transacao);
     }
 
-    @Transactional
-    public TransacaoMostrarDadosResponse saque(TransacaoEfetuarDadosRequest dados){
-        Conta conta = contaRepository.findById(dados.contaId())
-                .orElseThrow(() -> new EntityNotFoundException("A conta não foi encontrada"));
-
-        BigDecimal saldoAntes = conta.getSaldo();
-        conta.sacar(dados.valor());
-        Transacao transacao = Transacao.builder()
-                .conta(conta)
-                .tipo(dados.tipo())
-                .valor(dados.valor())
-                .saldoAnterior(saldoAntes)
-                .build();
-
-        repository.save(transacao);
-        return new TransacaoMostrarDadosResponse(transacao);
-    }
+    //TODO tranferir a logica de saque e deposito para dentro da entidade conta
 }
 
