@@ -1,5 +1,6 @@
 package com.banco.api.banco.model.entity;
 
+import com.banco.api.banco.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,14 +27,16 @@ public class Usuario implements UserDetails {
 
     private String login;
     private String senha;
-    private String role;
+
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
 
     @OneToOne(mappedBy = "usuario")
     private Cliente cliente;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + this.role));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
     }
 
     @Override

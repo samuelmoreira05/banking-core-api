@@ -5,6 +5,7 @@ import com.banco.api.banco.controller.cliente.request.ClienteCadastroDadosReques
 import com.banco.api.banco.controller.cliente.response.ClienteMostrarDadosResponse;
 import com.banco.api.banco.controller.cliente.response.ClienteListagemDadosResponse;
 import com.banco.api.banco.enums.StatusCliente;
+import com.banco.api.banco.enums.UserRole;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Usuario;
 import com.banco.api.banco.repository.ClienteRepository;
@@ -39,7 +40,7 @@ public class ClienteService {
         Usuario usuario = Usuario.builder()
                 .login(dados.login())
                 .senha(senhaHash)
-                .role("USER")
+                .role(UserRole.USER)
                 .build();
 
         Cliente cliente = Cliente.builder()
