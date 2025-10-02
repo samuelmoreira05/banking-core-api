@@ -57,7 +57,5 @@ public class TransacaoService {
                 .build();
         return repository.save(transacao);
     }
-
-    //TODO tranferir a logica de saque e deposito para dentro da entidade conta
 }
 
