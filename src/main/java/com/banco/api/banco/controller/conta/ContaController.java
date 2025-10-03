@@ -3,6 +3,7 @@ package com.banco.api.banco.controller.conta;
 import com.banco.api.banco.controller.conta.request.ContaCadastroDadosRequest;
 import com.banco.api.banco.controller.conta.response.ContaListagemDadosResponse;
 import com.banco.api.banco.controller.conta.response.ContaMostrarDadosResponse;
+import com.banco.api.banco.controller.documentation.ContaDocumentation;
 import com.banco.api.banco.service.ContaService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("api/contas")
 @SecurityRequirement(name = "barer-token")
-public class ContaController {
+public class ContaController implements ContaDocumentation {
 
     private final ContaService service;
 
@@ -24,7 +25,7 @@ public class ContaController {
     }
 
     @PostMapping("/cadastro")
-    public ResponseEntity<ContaMostrarDadosResponse> cadastroConta(
+    public ResponseEntity<ContaMostrarDadosResponse> cadastrar(
             @Valid
             @RequestBody ContaCadastroDadosRequest dados){
         ContaMostrarDadosResponse response = service.criarConta(dados);
@@ -32,7 +33,7 @@ public class ContaController {
     }
 
     @GetMapping("/listar")
-    public ResponseEntity<Page<ContaListagemDadosResponse>> listarConta(
+    public ResponseEntity<Page<ContaListagemDadosResponse>> listar(
             Pageable pageable
     ){
         Page<ContaListagemDadosResponse> listagem = service.listarConta(pageable);
@@ -40,7 +41,7 @@ public class ContaController {
     }
 
     @DeleteMapping("/encerrar")
-    public ResponseEntity<Void> encerrarConta(
+    public ResponseEntity<Void> encerrar(
             @PathVariable Long id
     ){
         service.encerraConta(id);
@@ -48,7 +49,7 @@ public class ContaController {
     }
 
     @DeleteMapping("/suspender")
-    public ResponseEntity<Void> suspendeConta(
+    public ResponseEntity<Void> suspender(
             @PathVariable Long id
     ){
         service.suspendeConta(id);
@@ -56,7 +57,7 @@ public class ContaController {
     }
 
     @DeleteMapping("/ativar")
-    public ResponseEntity<Void> ativaConta(
+    public ResponseEntity<Void> ativar(
             @PathVariable Long id
     ){
         service.ativaConta(id);

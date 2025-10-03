@@ -1,7 +1,5 @@
 package com.banco.api.banco.controller.documentation;
 
-// ... imports
-
 import com.banco.api.banco.controller.cliente.request.ClienteAtualizarDadosRequest;
 import com.banco.api.banco.controller.cliente.request.ClienteCadastroDadosRequest;
 import com.banco.api.banco.controller.cliente.response.ClienteListagemDadosResponse;
