@@ -1,5 +1,6 @@
 package com.banco.api.banco.controller.transacao;
 
+import com.banco.api.banco.controller.documentation.TransacaoDocumentation;
 import com.banco.api.banco.controller.transacao.request.TransacaoEfetuarDadosRequest;
 import com.banco.api.banco.controller.transacao.response.TransacaoMostrarDadosResponse;
 import com.banco.api.banco.service.TransacaoService;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("api/transacoes")
 @SecurityRequirement(name = "barer-token")
-public class TransacaoController {
+public class TransacaoController implements TransacaoDocumentation {
 
     private final TransacaoService service;
 
