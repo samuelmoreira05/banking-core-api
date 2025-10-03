@@ -5,8 +5,10 @@ import com.banco.api.banco.controller.cliente.request.ClienteCadastroDadosReques
 import com.banco.api.banco.controller.cliente.response.ClienteMostrarDadosResponse;
 import com.banco.api.banco.controller.cliente.response.ClienteDetalhamentoDadosResponse;
 import com.banco.api.banco.controller.cliente.response.ClienteListagemDadosResponse;
+import com.banco.api.banco.controller.documentation.ClienteDocumentation;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.service.ClienteService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/clientes")
-public class ClienteController {
+public class ClienteController implements ClienteDocumentation {
 
     private final ClienteService service;
 
@@ -24,7 +26,7 @@ public class ClienteController {
         this.service = service;}
 
     @PostMapping("/cadastrar")
-    public ResponseEntity<ClienteMostrarDadosResponse> cadastroCliente(
+    public ResponseEntity<ClienteMostrarDadosResponse> cadastrar(
             @Valid
             @RequestBody ClienteCadastroDadosRequest dados) {
         ClienteMostrarDadosResponse response = service.cadastraCliente(dados);
@@ -32,7 +34,8 @@ public class ClienteController {
     }
 
     @GetMapping("/listar")
-    public ResponseEntity<Page<ClienteListagemDadosResponse>> listarCliente(
+    @SecurityRequirement(name = "barer-token")
+    public ResponseEntity<Page<ClienteListagemDadosResponse>> listar(
             Pageable pageable
     ){
         Page<ClienteListagemDadosResponse> listagem = service.listaCliente(pageable);
@@ -40,7 +43,8 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity atualizarCliente(
+    @SecurityRequirement(name = "barer-token")
+    public ResponseEntity atualizar(
             @Valid
             @PathVariable Long id,
             @RequestBody ClienteAtualizarDadosRequest dados) {
@@ -49,7 +53,8 @@ public class ClienteController {
     }
 
     @DeleteMapping("/bloquear/{id}")
-    public ResponseEntity<Void> bloquearCliente(
+    @SecurityRequirement(name = "barer-token")
+    public ResponseEntity<Void> bloquear(
             @PathVariable Long id
     ){
         service.bloquear(id);
@@ -57,7 +62,8 @@ public class ClienteController {
     }
 
     @DeleteMapping("/inadimplencia/{id}")
-    public ResponseEntity clienteInadimplente(
+    @SecurityRequirement(name = "barer-token")
+    public ResponseEntity inadimplencia(
             @PathVariable Long id
     ){
         service.inadimplencia(id);
