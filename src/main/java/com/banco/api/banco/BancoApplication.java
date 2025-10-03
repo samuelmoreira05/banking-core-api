@@ -1,7 +1,6 @@
 package com.banco.api.banco;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.info.Info;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -9,6 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class BancoApplication {
 
 	public static void main(String[] args) {
+		Dotenv.configure().systemProperties().load();
 		SpringApplication.run(BancoApplication.class, args);
 	}
 
