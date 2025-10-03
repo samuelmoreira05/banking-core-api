@@ -63,7 +63,7 @@ public class ClienteController implements ClienteDocumentation {
 
     @DeleteMapping("/inadimplencia/{id}")
     @SecurityRequirement(name = "barer-token")
-    public ResponseEntity inadimplencia(
+    public ResponseEntity<Void> inadimplencia(
             @PathVariable Long id
     ){
         service.inadimplencia(id);
