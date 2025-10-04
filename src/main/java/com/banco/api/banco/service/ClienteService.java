@@ -61,43 +61,28 @@ public class ClienteService {
     }
 
     @Transactional
-    public Cliente atualizarCliente (Long id, ClienteAtualizarDadosRequest dados){
+    public ClienteMostrarDadosResponse atualizarCliente (Long id, ClienteAtualizarDadosRequest dados){
         Cliente cliente = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado na base de dados!"));
 
-        if (dados.nome() != null) {
-            cliente.setNome(dados.nome());
-        }
-        if (dados.endereco() != null) {
-            cliente.setEndereco(dados.endereco());
-        }
-        if (dados.email() != null) {
-            cliente.setEmail(dados.email());
-        }
-        if (dados.telefone() != null) {
-            cliente.setTelefone(dados.telefone());
-        }
-
-        return cliente;
+        cliente.atualizaCliente(dados);
+        return new ClienteMostrarDadosResponse(cliente);
     }
 
     @Transactional
     public void bloquear (Long id) {
-        Optional<Cliente> optionalCliente = repository.findById(id);
-        if (optionalCliente.isPresent()) {
-            Cliente cliente = optionalCliente.get();
-            cliente.bloquear();
-            repository.save(cliente);
-        }
+        Cliente cliente = buscarClientePorId(id);
+        cliente.bloquear();
     }
 
     @Transactional
     public void inadimplencia(Long id) {
-        Optional<Cliente> optionalCliente = repository.findById(id);
-        if (optionalCliente.isPresent()){
-            Cliente cliente = optionalCliente.get();
-            cliente.inadimplencia();
-            repository.save(cliente);
-        }
+        Cliente cliente = buscarClientePorId(id);
+        cliente.inadimplencia();
+    }
+
+    private Cliente buscarClientePorId(Long id){
+        return repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Cliente de ID" + id + "não encontrado"));
     }
 }

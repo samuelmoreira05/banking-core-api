@@ -1,5 +1,6 @@
 package com.banco.api.banco.model.entity;
 
+import com.banco.api.banco.controller.cliente.request.ClienteAtualizarDadosRequest;
 import com.banco.api.banco.enums.StatusCliente;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
@@ -72,6 +73,21 @@ public class Cliente {
     public void ativar() {
         this.status = StatusCliente.ATIVO;
         this.dataAtivacao = LocalDate.now();
+    }
+
+    public void atualizaCliente(ClienteAtualizarDadosRequest dados){
+        if (dados.nome() != null) {
+            this.setNome(dados.nome());
+        }
+        if (dados.endereco() != null) {
+            this.setEndereco(dados.endereco());
+        }
+        if (dados.email() != null) {
+            this.setEmail(dados.email());
+        }
+        if (dados.telefone() != null) {
+            this.setTelefone(dados.telefone());
+        }
     }
 
     public int getIdade() {
