@@ -25,27 +25,22 @@ public class TransacaoService {
     }
 
     @Transactional
-     public TransacaoMostrarDadosResponse efetuarTransacao(TransacaoEfetuarDadosRequest dados){
-        if (dados.valor().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("O valor da transacao deve ser positivo");
-        }
-
-        Conta conta = contaRepository.findById(dados.contaId())
-                .orElseThrow(() -> new IllegalStateException("A conta não foi encontrada na base de dados"));
+    public TransacaoMostrarDadosResponse efetuarTransacao(TransacaoEfetuarDadosRequest dados) {
+        Conta conta = buscarContaPorId(dados.contaId());
 
         BigDecimal saldoAntes = conta.getSaldo();
 
-        if (dados.tipo() == TipoTransacao.DEPOSITO){
-            conta.depositar(dados.valor());
-        } else if (dados.tipo() == TipoTransacao.SAQUE) {
-            conta.sacar(dados.valor());
-        }else {
-            throw new UnsupportedOperationException("Tipo de transação não suportada: " + dados.tipo());
-        }
+        conta.executarTransacao(dados.tipo(), dados.valor());
 
-        Transacao transacao = salvarTransacao(conta, dados, saldoAntes);
+        Transacao transacao = new Transacao(conta, dados.tipo(), dados.valor(), saldoAntes);
+        repository.save(transacao);
 
         return new TransacaoMostrarDadosResponse(transacao);
+    }
+
+    private Conta buscarContaPorId(Long id) {
+        return contaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Conta com ID " + id + " não encontrada."));
     }
 
     private Transacao salvarTransacao(Conta conta, TransacaoEfetuarDadosRequest dados, BigDecimal saldoAnterior){

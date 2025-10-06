@@ -2,6 +2,8 @@ package com.banco.api.banco.model.entity;
 
 import com.banco.api.banco.enums.StatusConta;
 import com.banco.api.banco.enums.TipoConta;
+import com.banco.api.banco.enums.TipoTransacao;
+import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -102,6 +104,23 @@ public class Conta {
     public void antesDeSalvar() {
         if (this.numeroConta == null) {
             this.numeroConta = gerarNumero();
+        }
+    }
+
+    public void executarTransacao(TipoTransacao tipo, BigDecimal valor) {
+        if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RegraDeNegocioException("O valor da transação deve ser positivo.");
+        }
+
+        if (tipo == TipoTransacao.DEPOSITO) {
+            this.saldo = this.saldo.add(valor);
+        } else if (tipo == TipoTransacao.SAQUE) {
+            if (this.saldo.compareTo(valor) < 0) {
+                throw new IllegalStateException("Saldo insuficiente para realizar o saque.");
+            }
+            this.saldo = this.saldo.subtract(valor);
+        } else {
+            throw new IllegalArgumentException("Tipo de transação não suportado.");
         }
     }
 

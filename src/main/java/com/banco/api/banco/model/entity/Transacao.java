@@ -37,4 +37,12 @@ public class Transacao {
 
     private BigDecimal saldoAnterior;
 
+    public Transacao(Conta conta, TipoTransacao tipo, BigDecimal valor, BigDecimal saldoAnterior) {
+        this.conta = conta;
+        this.tipo = tipo;
+        this.valor = valor;
+        this.saldoAnterior = saldoAnterior;
+        this.dataTransacao = LocalDateTime.now();
+    }
+
 }
