@@ -8,7 +8,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class BancoApplication {
 
 	public static void main(String[] args) {
-		Dotenv.configure().systemProperties().load();
+		Dotenv dotenv = Dotenv.configure()
+				.directory("./")
+				.ignoreIfMalformed()
+				.ignoreIfMissing()
+				.systemProperties()
+				.load();
 		SpringApplication.run(BancoApplication.class, args);
 	}
 

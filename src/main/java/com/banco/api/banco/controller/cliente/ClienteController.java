@@ -48,8 +48,8 @@ public class ClienteController implements ClienteDocumentation {
             @Valid
             @PathVariable Long id,
             @RequestBody ClienteAtualizarDadosRequest dados) {
-        Cliente cliente = service.atualizarCliente(id, dados);
-        return ResponseEntity.ok(new ClienteDetalhamentoDadosResponse(cliente));
+        ClienteMostrarDadosResponse mostraCliente = service.atualizarCliente(id, dados);
+        return ResponseEntity.ok(mostraCliente);
     }
 
     @DeleteMapping("/bloquear/{id}")

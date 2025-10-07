@@ -7,6 +7,8 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.banco.api.banco.model.entity.Usuario;
 import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -17,12 +19,8 @@ import java.time.ZoneOffset;
 @Service
 public class TokenSecurity {
 
+    @Value("${api.security.token.secret}")
     private String secret;
-
-    public TokenSecurity() {
-        Dotenv dotenv = Dotenv.load();
-        this.secret = dotenv.get("JWT_SECRET");
-    }
 
     public String geraToken(Usuario usuario) {
         try {
