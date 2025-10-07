@@ -5,8 +5,10 @@ import com.banco.api.banco.controller.cliente.request.ClienteCadastroDadosReques
 import com.banco.api.banco.controller.cliente.response.ClienteListagemDadosResponse;
 import com.banco.api.banco.controller.cliente.response.ClienteMostrarDadosResponse;
 import com.banco.api.banco.enums.StatusCliente;
+import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.repository.ClienteRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -22,8 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ClienteServiceTest {
@@ -72,10 +73,32 @@ class ClienteServiceTest {
     }
 
     @Test
+    void criacaoDeCadastroCpfDuplicado() {
+        ClienteCadastroDadosRequest dados = new ClienteCadastroDadosRequest(
+                "Samuel Garcia",
+                "samuel.garcia@email.com",
+                "49743844918",
+                "19995542038",
+                "rua itapeserica",
+                LocalDate.of(2005, 4, 4),
+                "samuel.g",
+                "samu123456"
+        );
+
+        when(clienteRepository.existsByCpf(dados.cpf())).thenReturn(true);
+
+        assertThrows(RegraDeNegocioException.class, () -> {
+            clienteService.cadastraCliente(dados);
+        });
+
+        verify(clienteRepository, never()).save(any(Cliente.class));
+    }
+
+    @Test
     void atualizarClienteSucesso() {
         var id = 1L;
 
-        ClienteAtualizarDadosRequest dadosatualizados = new ClienteAtualizarDadosRequest(
+        ClienteAtualizarDadosRequest dadosAtualizados = new ClienteAtualizarDadosRequest(
                 "Matheus Almeida",
                 "rua martins",
                 "mateus@email.com",
@@ -91,7 +114,7 @@ class ClienteServiceTest {
 
         when(clienteRepository.findById(id)).thenReturn(Optional.of(clienteAntes));
 
-        ClienteMostrarDadosResponse response = clienteService.atualizarCliente(id, dadosatualizados);
+        ClienteMostrarDadosResponse response = clienteService.atualizarCliente(id, dadosAtualizados);
 
         assertNotNull(response);
         assertEquals("Matheus Almeida", response.nome());
@@ -103,6 +126,33 @@ class ClienteServiceTest {
         assertEquals("rua martins", clienteAntes.getEndereco());
         assertEquals("mateus@email.com", clienteAntes.getEmail());
         assertEquals("19997534011", clienteAntes.getTelefone());
+    }
+
+    @Test
+    void atualizarClienteSemDadosId() {
+        var id = 1L;
+
+        ClienteAtualizarDadosRequest dadosAtualizados = new ClienteAtualizarDadosRequest(
+                "Matheus Almeida",
+                "rua martins",
+                "mateus@email.com",
+                "19997534011"
+        );
+
+        Cliente clienteAntes = new Cliente();
+        clienteAntes.setId(1L);
+        clienteAntes.setNome("Samuel Garcia");
+        clienteAntes.setEndereco("rua itapeserica");
+        clienteAntes.setEmail("samuel.garcia@email.com");
+        clienteAntes.setTelefone("19995542038");
+
+        when(clienteRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> {
+            clienteService.atualizarCliente(id, dadosAtualizados);
+        });
+
+        verify(clienteRepository, never()).save(any(Cliente.class));
     }
 
     @Test

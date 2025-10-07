@@ -6,6 +6,7 @@ import com.banco.api.banco.controller.cliente.response.ClienteMostrarDadosRespon
 import com.banco.api.banco.controller.cliente.response.ClienteListagemDadosResponse;
 import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.enums.UserRole;
+import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Usuario;
 import com.banco.api.banco.repository.ClienteRepository;
@@ -32,7 +33,7 @@ public class ClienteService {
     @Transactional
     public ClienteMostrarDadosResponse cadastraCliente(ClienteCadastroDadosRequest dados) {
         if (repository.existsByCpf(dados.cpf())){
-            throw new IllegalStateException("Esse CPF já existe na base de dados!");
+            throw new RegraDeNegocioException("Esse CPF já existe na base de dados!");
         }
 
         var senhaHash = passwordEncoder.encode(dados.senha());
