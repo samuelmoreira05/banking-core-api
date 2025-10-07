@@ -56,6 +56,7 @@ public class ClienteService {
         repository.save(cliente);
         return new ClienteMostrarDadosResponse(cliente);
     }
+
     public Page<ClienteListagemDadosResponse> listaCliente(Pageable pageable){
         return repository.findAll(pageable).map(ClienteListagemDadosResponse::new);
     }
@@ -81,7 +82,7 @@ public class ClienteService {
         cliente.inadimplencia();
     }
 
-    private Cliente buscarClientePorId(Long id){
+    protected Cliente buscarClientePorId(Long id){
         return repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cliente de ID" + id + "não encontrado"));
     }

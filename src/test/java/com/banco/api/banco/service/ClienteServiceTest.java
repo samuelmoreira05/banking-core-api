@@ -1,6 +1,8 @@
 package com.banco.api.banco.service;
 
+import com.banco.api.banco.controller.cliente.request.ClienteAtualizarDadosRequest;
 import com.banco.api.banco.controller.cliente.request.ClienteCadastroDadosRequest;
+import com.banco.api.banco.controller.cliente.response.ClienteListagemDadosResponse;
 import com.banco.api.banco.controller.cliente.response.ClienteMostrarDadosResponse;
 import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.model.entity.Cliente;
@@ -9,9 +11,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -33,7 +41,7 @@ class ClienteServiceTest {
     private ArgumentCaptor<Cliente> clienteArgumentCaptor;
 
     @Test
-    void cricacaoDeCadastroDeCliente() {
+    void cricacaoDeCadastroDeClienteSucesso() {
         ClienteCadastroDadosRequest dados = new ClienteCadastroDadosRequest(
                 "Samuel Garcia",
                 "samuel.garcia@email.com",
@@ -61,6 +69,95 @@ class ClienteServiceTest {
         assertEquals("Samuel Garcia", clienteSalvo.getNome());
         assertEquals("49743844918", clienteSalvo.getCpf());
         assertEquals(StatusCliente.ATIVO, clienteSalvo.getStatus());
+    }
+
+    @Test
+    void atualizarClienteSucesso() {
+        var id = 1L;
+
+        ClienteAtualizarDadosRequest dadosatualizados = new ClienteAtualizarDadosRequest(
+                "Matheus Almeida",
+                "rua martins",
+                "mateus@email.com",
+                "19997534011"
+        );
+
+        Cliente clienteAntes = new Cliente();
+        clienteAntes.setId(1L);
+        clienteAntes.setNome("Samuel Garcia");
+        clienteAntes.setEndereco("rua itapeserica");
+        clienteAntes.setEmail("samuel.garcia@email.com");
+        clienteAntes.setTelefone("19995542038");
+
+        when(clienteRepository.findById(id)).thenReturn(Optional.of(clienteAntes));
+
+        ClienteMostrarDadosResponse response = clienteService.atualizarCliente(id, dadosatualizados);
+
+        assertNotNull(response);
+        assertEquals("Matheus Almeida", response.nome());
+        assertEquals("rua martins", response.endereco());
+        assertEquals("mateus@email.com", response.email());
+        assertEquals("19997534011", response.telefone());
+
+        assertEquals("Matheus Almeida", clienteAntes.getNome());
+        assertEquals("rua martins", clienteAntes.getEndereco());
+        assertEquals("mateus@email.com", clienteAntes.getEmail());
+        assertEquals("19997534011", clienteAntes.getTelefone());
+    }
+
+    @Test
+    void listarClientesSucesso() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Cliente cliente1 = new Cliente();
+        cliente1.setId(1L);
+        cliente1.setNome("Samuel Garcia");
+
+        Cliente cliente2 = new Cliente();
+        cliente2.setId(2L);
+        cliente2.setNome("Rafael Moreira");
+
+        Page<Cliente> paginaCLiente = new PageImpl<>(List.of(cliente1, cliente2), pageable, 2);
+
+        when(clienteRepository.findAll(pageable)).thenReturn(paginaCLiente);
+
+        Page<ClienteListagemDadosResponse> response = clienteService.listaCliente(pageable);
+
+        assertNotNull(response);
+        assertEquals(2, response.getTotalElements());
+        assertEquals(2, response.getContent().size());
+        assertEquals("Samuel Garcia", response.getContent().get(0).nome());
+        assertEquals("Rafael Moreira", response.getContent().get(1).nome());
+    }
+
+    @Test
+    void bloquearClientePorIdSucesso() {
+        var id = 1L;
+
+        Cliente cliente = new Cliente();
+        cliente.setId(1L);
+        cliente.setStatus(StatusCliente.ATIVO);
+
+        when(clienteRepository.findById(id)).thenReturn(Optional.of(cliente));
+
+        clienteService.bloquear(id);
+
+        assertEquals(StatusCliente.BLOQUEADO, cliente.getStatus());
+    }
+
+    @Test
+    void inadimplenteClientePorSucesso() {
+        var id = 1L;
+
+        Cliente cliente = new Cliente();
+        cliente.setId(1L);
+        cliente.setStatus(StatusCliente.ATIVO);
+
+        when(clienteRepository.findById(id)).thenReturn(Optional.of(cliente));
+
+        clienteService.inadimplencia(id);
+
+        assertEquals(StatusCliente.INADIMPLENTE, cliente.getStatus());
     }
 
 }
