@@ -29,17 +29,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ClienteServiceTest {
 
-    @Mock
-    private ClienteRepository clienteRepository;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
-
-    @InjectMocks
-    private ClienteService clienteService;
-
-    @Captor
-    private ArgumentCaptor<Cliente> clienteArgumentCaptor;
+    @Mock private ClienteRepository clienteRepository;
+    @Mock private PasswordEncoder passwordEncoder;
+    @InjectMocks private ClienteService clienteService;
+    @Captor private ArgumentCaptor<Cliente> clienteArgumentCaptor;
 
     @Test
     void cricacaoDeCadastroDeClienteSucesso() {
@@ -181,6 +174,19 @@ class ClienteServiceTest {
     }
 
     @Test
+    void retornaPaginaVazia() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(clienteRepository.findAll(pageable)).thenReturn(Page.empty());
+
+        Page<ClienteListagemDadosResponse> response = clienteService.listaCliente(pageable);
+
+        assertNotNull(response);
+        assertTrue(response.isEmpty());
+        assertEquals(0, response.getTotalElements());
+    }
+
+    @Test
     void bloquearClientePorIdSucesso() {
         var id = 1L;
 
@@ -193,6 +199,16 @@ class ClienteServiceTest {
         clienteService.bloquear(id);
 
         assertEquals(StatusCliente.BLOQUEADO, cliente.getStatus());
+    }
+
+    @Test
+    void lancaExcecaoQuandoIdNaoExistirBloquear() {
+        var id = 1L;
+
+        when(clienteRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () ->
+                clienteService.bloquear(id));
     }
 
     @Test
@@ -210,4 +226,13 @@ class ClienteServiceTest {
         assertEquals(StatusCliente.INADIMPLENTE, cliente.getStatus());
     }
 
+    @Test
+    void lancaExcecaoQuandoIdNaoExistirInadimplencia() {
+        var id = 1L;
+
+        when(clienteRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () ->
+                clienteService.inadimplencia(id));
+    }
 }
