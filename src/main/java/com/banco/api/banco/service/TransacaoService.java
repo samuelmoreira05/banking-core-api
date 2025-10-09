@@ -32,8 +32,7 @@ public class TransacaoService {
 
         conta.executarTransacao(dados.tipo(), dados.valor());
 
-        Transacao transacao = new Transacao(conta, dados.tipo(), dados.valor(), saldoAntes);
-        repository.save(transacao);
+        Transacao transacao = salvarTransacao(conta, dados, saldoAntes);
 
         return new TransacaoMostrarDadosResponse(transacao);
     }
