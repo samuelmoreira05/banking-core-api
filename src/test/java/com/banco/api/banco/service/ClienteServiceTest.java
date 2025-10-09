@@ -191,7 +191,7 @@ class ClienteServiceTest {
         var id = 1L;
 
         Cliente cliente = new Cliente();
-        cliente.setId(1L);
+        cliente.setId(id);
         cliente.setStatus(StatusCliente.ATIVO);
 
         when(clienteRepository.findById(id)).thenReturn(Optional.of(cliente));
