@@ -59,7 +59,26 @@ class ContaServiceTest {
         assertEquals(cliente, conta.getCliente());
         assertEquals(TipoConta.CONTA_CORRENTE, conta.getTipoConta());
     }
-    
+
+    @Test
+    void criacaoContaClienteNaoEncontrado() {
+        var idCliente = 1L;
+
+        ContaCadastroDadosRequest dados = new ContaCadastroDadosRequest(idCliente, TipoConta.CONTA_CORRENTE);
+
+        Cliente cliente = new Cliente();
+        cliente.setId(idCliente);
+        cliente.setNome("Samuel");
+
+        when(clienteRepository.findById(idCliente)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> {
+            contaService.criarConta(dados);
+        });
+
+        verify(contaRepository, never()).save(any(Conta.class));
+    }
+
     @Test
     void  listaContaSucesso() {
         Pageable pageable = PageRequest.of(0, 2);
@@ -94,6 +113,19 @@ class ContaServiceTest {
     }
 
     @Test
+    void retornaPaginaVazia() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(contaRepository.findAll(pageable)).thenReturn(Page.empty());
+
+        Page<ContaListagemDadosResponse> contaPage = contaService.listarConta(pageable);
+
+        assertNotNull(contaPage);
+        assertTrue(contaPage.isEmpty());
+        assertEquals(0, contaPage.getTotalElements());
+    }
+
+    @Test
     void encerraContaClientePorId() {
         var idCliente = 2L;
         var idConta = 1L;
@@ -110,6 +142,17 @@ class ContaServiceTest {
         contaService.encerraConta(idConta);
 
         assertEquals(StatusConta.ENCERRADA, conta.getStatus());
+    }
+
+    @Test
+    void lancaExcecaoQuandoIdNaoExistirEncerrar() {
+        var idConta = 2L;
+
+        when(contaRepository.findById(idConta)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> {
+           contaService.encerraConta(idConta);
+        });
     }
 
     @Test
@@ -132,6 +175,17 @@ class ContaServiceTest {
     }
 
     @Test
+    void lancaExcecaoQuandoIdNaoExistirSuspender() {
+        var idConta = 2L;
+
+        when(contaRepository.findById(idConta)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> {
+            contaService.suspendeConta(idConta);
+        });
+    }
+
+    @Test
     void ativaContaClientePorId() {
         var idCliente = 2L;
         var idConta = 1L;
@@ -148,5 +202,16 @@ class ContaServiceTest {
         contaService.ativaConta(idConta);
 
         assertEquals(StatusConta.ATIVO, conta.getStatus());
+    }
+
+    @Test
+    void lancaExcecaoQuandoIdNaoExistirAtivar() {
+        var idConta = 2L;
+
+        when(contaRepository.findById(idConta)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> {
+            contaService.ativaConta(idConta);
+        });
     }
 }
