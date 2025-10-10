@@ -2,6 +2,7 @@ package com.banco.api.banco.service;
 
 import com.banco.api.banco.controller.transacao.request.TransacaoEfetuarDadosRequest;
 import com.banco.api.banco.controller.transacao.response.TransacaoMostrarDadosResponse;
+import com.banco.api.banco.mapper.TransacaoMapper;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.model.entity.Transacao;
 import com.banco.api.banco.repository.ContaRepository;
@@ -17,10 +18,12 @@ public class TransacaoService {
 
     private final TransacaoRepository repository;
     private final ContaRepository contaRepository;
+    private final TransacaoMapper transacaoMapper;
 
-    public TransacaoService(TransacaoRepository repository, ContaRepository contaRepository) {
+    public TransacaoService(TransacaoRepository repository, ContaRepository contaRepository, TransacaoMapper transacaoMapper) {
         this.repository = repository;
         this.contaRepository = contaRepository;
+        this.transacaoMapper = transacaoMapper;
     }
 
     @Transactional
@@ -42,12 +45,7 @@ public class TransacaoService {
     }
 
     private Transacao salvarTransacao(Conta conta, TransacaoEfetuarDadosRequest dados, BigDecimal saldoAnterior){
-        Transacao transacao = Transacao.builder()
-                .conta(conta)
-                .tipo(dados.tipo())
-                .valor(dados.valor())
-                .saldoAnterior(saldoAnterior)
-                .build();
+        Transacao transacao = transacaoMapper.toEntity(conta, dados, saldoAnterior);
         return repository.save(transacao);
     }
 }
