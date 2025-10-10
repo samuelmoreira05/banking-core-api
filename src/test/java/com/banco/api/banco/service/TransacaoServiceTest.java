@@ -63,4 +63,36 @@ class TransacaoServiceTest {
         assertEquals(BigDecimal.valueOf(100), transacaoSalva.getValor());
         assertEquals(BigDecimal.valueOf(1100), conta.getSaldo());
     }
+
+    @Test
+    void transacaoEfetuadaSaqueComSucesso() {
+        Long idConta = 1L;
+
+        Conta conta = new Conta();
+        conta.setId(idConta);
+        conta.setSaldo(BigDecimal.valueOf(1000));
+
+        TransacaoEfetuarDadosRequest transacao = new TransacaoEfetuarDadosRequest(
+                idConta,
+                TipoTransacao.SAQUE,
+                BigDecimal.valueOf(100)
+        );
+
+        when(contaRepository.findById(idConta)).thenReturn(Optional.of(conta));
+        when(transacaoRepository.save(any(Transacao.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        TransacaoMostrarDadosResponse response = transacaoService.efetuarTransacao(transacao);
+
+        assertNotNull(response);
+        assertEquals(BigDecimal.valueOf(100), response.valor());
+        assertEquals(TipoTransacao.SAQUE, response.tipo());
+
+        verify(transacaoRepository).save(transacaoCaptor.capture());
+        Transacao transacaoSalva = transacaoCaptor.getValue();
+
+        assertEquals(BigDecimal.valueOf(1000), transacaoSalva.getSaldoAnterior());
+        assertEquals(BigDecimal.valueOf(100), transacaoSalva.getValor());
+        assertEquals(BigDecimal.valueOf(900), conta.getSaldo());
+    }
 }
