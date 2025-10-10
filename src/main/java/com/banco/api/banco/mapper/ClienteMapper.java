@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class ClienteMapper {
 
-    public static Cliente toEntity(ClienteCadastroDadosRequest dados, String senhaCriptografada){
+    public Cliente toEntity(ClienteCadastroDadosRequest dados, String senhaCriptografada){
         Usuario usuario = Usuario.builder()
                 .login(dados.login())
                 .senha(senhaCriptografada)

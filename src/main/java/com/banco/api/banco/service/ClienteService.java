@@ -25,10 +25,12 @@ public class ClienteService {
 
     private final ClienteRepository repository;
     private final PasswordEncoder passwordEncoder;
+    private final ClienteMapper clienteMapper;
 
-    public ClienteService(ClienteRepository repository, PasswordEncoder passwordEncoder) {
+    public ClienteService(ClienteRepository repository, PasswordEncoder passwordEncoder, ClienteMapper clienteMapper) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
+        this.clienteMapper = clienteMapper;
     }
 
     @Transactional
@@ -39,7 +41,7 @@ public class ClienteService {
 
         var senhaHash = passwordEncoder.encode(dados.senha());
 
-        Cliente cliente = ClienteMapper.toEntity(dados, senhaHash);
+        Cliente cliente = clienteMapper.toEntity(dados, senhaHash);
 
         cliente.getUsuario().setRole(UserRole.USER);
         cliente.setStatus(StatusCliente.ATIVO);
