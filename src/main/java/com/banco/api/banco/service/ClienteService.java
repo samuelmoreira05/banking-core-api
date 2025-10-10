@@ -7,6 +7,7 @@ import com.banco.api.banco.controller.cliente.response.ClienteListagemDadosRespo
 import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.enums.UserRole;
 import com.banco.api.banco.infra.exception.RegraDeNegocioException;
+import com.banco.api.banco.mapper.ClienteMapper;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Usuario;
 import com.banco.api.banco.repository.ClienteRepository;
@@ -38,22 +39,11 @@ public class ClienteService {
 
         var senhaHash = passwordEncoder.encode(dados.senha());
 
-        Usuario usuario = Usuario.builder()
-                .login(dados.login())
-                .senha(senhaHash)
-                .role(UserRole.USER)
-                .build();
+        Cliente cliente = ClienteMapper.toEntity(dados, senhaHash);
 
-        Cliente cliente = Cliente.builder()
-                .nome(dados.nome())
-                .cpf(dados.cpf())
-                .email(dados.email())
-                .dataNascimento(dados.dataNascimento())
-                .endereco(dados.endereco())
-                .telefone(dados.telefone())
-                .status(StatusCliente.ATIVO)
-                .usuario(usuario)
-                .build();
+        cliente.getUsuario().setRole(UserRole.USER);
+        cliente.setStatus(StatusCliente.ATIVO);
+
         repository.save(cliente);
         return new ClienteMostrarDadosResponse(cliente);
     }
