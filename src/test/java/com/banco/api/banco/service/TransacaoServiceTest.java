@@ -7,6 +7,8 @@ import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.model.entity.Transacao;
 import com.banco.api.banco.repository.ContaRepository;
 import com.banco.api.banco.repository.TransacaoRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.hibernate.query.sqm.EntityTypeException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -20,9 +22,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.same;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TransacaoServiceTest {
@@ -66,7 +66,7 @@ class TransacaoServiceTest {
 
     @Test
     void transacaoEfetuadaSaqueComSucesso() {
-        Long idConta = 1L;
+        var idConta = 1L;
 
         Conta conta = new Conta();
         conta.setId(idConta);
@@ -94,5 +94,28 @@ class TransacaoServiceTest {
         assertEquals(BigDecimal.valueOf(1000), transacaoSalva.getSaldoAnterior());
         assertEquals(BigDecimal.valueOf(100), transacaoSalva.getValor());
         assertEquals(BigDecimal.valueOf(900), conta.getSaldo());
+    }
+
+    @Test
+    void transacaoNaoEfetuadaSemIdDaConta() {
+        var idConta = 1L;
+
+        Conta conta = new Conta();
+        conta.setId(idConta);
+        conta.setSaldo(new BigDecimal(1000));
+
+        TransacaoEfetuarDadosRequest dados = new TransacaoEfetuarDadosRequest(
+                idConta,
+                TipoTransacao.SAQUE,
+                 BigDecimal.valueOf(200)
+        );
+
+        when(contaRepository.findById(idConta)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> {
+            transacaoService.efetuarTransacao(dados);
+        });
+
+        verify(transacaoRepository, never()).save(any(Transacao.class));
     }
 }
