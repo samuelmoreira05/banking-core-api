@@ -3,6 +3,8 @@ package com.banco.api.banco.service;
 import com.banco.api.banco.controller.conta.request.ContaCadastroDadosRequest;
 import com.banco.api.banco.controller.conta.response.ContaListagemDadosResponse;
 import com.banco.api.banco.controller.conta.response.ContaMostrarDadosResponse;
+import com.banco.api.banco.enums.TipoConta;
+import com.banco.api.banco.mapper.ContaMapper;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.ClienteRepository;
@@ -18,10 +20,12 @@ public class ContaService {
 
     private final ContaRepository repository;
     private final ClienteRepository clienteRepository;
+    private final ContaMapper contaMapper;
 
-    public ContaService(ContaRepository repository, ClienteRepository clienteRepository) {
+    public ContaService(ContaRepository repository, ClienteRepository clienteRepository, ContaMapper contaMapper) {
         this.repository = repository;
         this.clienteRepository = clienteRepository;
+        this.contaMapper = contaMapper;
     }
 
     @Transactional
@@ -29,12 +33,12 @@ public class ContaService {
         Cliente cliente = clienteRepository.findById(dados.clienteId())
                 .orElseThrow(() -> new EntityNotFoundException("Cliente não foi encontrado"));
 
-        Conta conta = Conta.builder()
-                .cliente(cliente)
-                .tipoConta(dados.tipo())
-                .build();
+
+        Conta conta = contaMapper.toEntity(dados, cliente);
+        conta.setTipoConta(TipoConta.CONTA_CORRENTE);
 
         repository.save(conta);
+
         return new ContaMostrarDadosResponse(conta);
     }
 
