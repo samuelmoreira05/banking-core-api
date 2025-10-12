@@ -3,6 +3,7 @@ package com.banco.api.banco.service;
 import com.banco.api.banco.controller.conta.request.ContaCadastroDadosRequest;
 import com.banco.api.banco.controller.conta.response.ContaListagemDadosResponse;
 import com.banco.api.banco.controller.conta.response.ContaMostrarDadosResponse;
+import com.banco.api.banco.enums.StatusConta;
 import com.banco.api.banco.enums.TipoConta;
 import com.banco.api.banco.mapper.ContaMapper;
 import com.banco.api.banco.model.entity.Cliente;
@@ -35,7 +36,7 @@ public class ContaService {
 
 
         Conta conta = contaMapper.toEntity(dados, cliente);
-        conta.setTipoConta(TipoConta.CONTA_CORRENTE);
+        conta.setStatus(StatusConta.ATIVO);
 
         repository.save(conta);
 
@@ -49,25 +50,28 @@ public class ContaService {
 
     @Transactional
     public void encerraConta (Long id){
-        Conta conta = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Conta não encontrada na base de dados: " + id));
+        Conta conta = buscarContaPorId(id);
 
             conta.encerraConta();
     }
 
     @Transactional
     public void suspendeConta(Long id){
-        Conta conta = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Conta não encontrada na base de dados: " + id));
+        Conta conta = buscarContaPorId(id);
 
         conta.suspendeConta();
     }
 
     @Transactional
     public void  ativaConta(Long id){
-        Conta conta = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Conta não encontrada na base de dados: " + id));
+        Conta conta = buscarContaPorId(id);
 
         conta.ativaConta();
+    }
+
+    private Conta buscarContaPorId(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Conta com ID " + id + " não encontrada."));
+
     }
 }

@@ -35,8 +35,8 @@ public class ClienteService {
 
     @Transactional
     public ClienteMostrarDadosResponse cadastraCliente(ClienteCadastroDadosRequest dados) {
-        if (repository.existsByCpf(dados.cpf())){
-            throw new RegraDeNegocioException("Esse CPF já existe na base de dados!");
+        if (repository.existsByCpf(dados.cpf()) || repository.existsByEmail(dados.email())){
+            throw new RegraDeNegocioException("Esse CPF ou Email já existe na base de dados!");
         }
 
         var senhaHash = passwordEncoder.encode(dados.senha());
@@ -66,12 +66,22 @@ public class ClienteService {
     @Transactional
     public void bloquear (Long id) {
         Cliente cliente = buscarClientePorId(id);
+
+        if (cliente.getStatus() == StatusCliente.BLOQUEADO){
+            throw new RegraDeNegocioException("O cliente ja se encontra bloqueado");
+        }
+
         cliente.bloquear();
     }
 
     @Transactional
     public void inadimplencia(Long id) {
         Cliente cliente = buscarClientePorId(id);
+
+        if (cliente.getStatus() == StatusCliente.INADIMPLENTE){
+            throw new RegraDeNegocioException("O cliente ja se encontra inadimplente");
+        }
+        
         cliente.inadimplencia();
     }
 

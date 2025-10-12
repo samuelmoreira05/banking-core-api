@@ -2,6 +2,8 @@ package com.banco.api.banco.service;
 
 import com.banco.api.banco.controller.transacao.request.TransacaoEfetuarDadosRequest;
 import com.banco.api.banco.controller.transacao.response.TransacaoMostrarDadosResponse;
+import com.banco.api.banco.enums.StatusConta;
+import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.mapper.TransacaoMapper;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.model.entity.Transacao;
@@ -30,6 +32,10 @@ public class TransacaoService {
     public TransacaoMostrarDadosResponse efetuarTransacao(TransacaoEfetuarDadosRequest dados) {
         Conta conta = buscarContaPorId(dados.contaId());
 
+        if(conta.getStatus() != StatusConta.ATIVO){
+            throw new RegraDeNegocioException("Transacoes não são permitidas em contas com status: " + conta.getStatus());
+        }
+
         BigDecimal saldoAntes = conta.getSaldo();
 
         conta.executarTransacao(dados.tipo(), dados.valor());
@@ -42,6 +48,7 @@ public class TransacaoService {
     private Conta buscarContaPorId(Long id) {
         return contaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Conta com ID " + id + " não encontrada."));
+
     }
 
     private Transacao salvarTransacao(Conta conta, TransacaoEfetuarDadosRequest dados, BigDecimal saldoAnterior){
