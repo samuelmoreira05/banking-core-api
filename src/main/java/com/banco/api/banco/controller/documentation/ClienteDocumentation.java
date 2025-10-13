@@ -63,4 +63,14 @@ public interface ClienteDocumentation {
     ResponseEntity<Void> inadimplencia(
             @PathVariable Long id
     );
+
+    @Operation(summary = "Marca um cliente como ativo por ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Status de ativo do cliente atualizado com sucesso."),
+            @ApiResponse(responseCode = "404", description = "Cliente não encontrado pelo ID informado."),
+            @ApiResponse(responseCode = "500", description = "Erro interno no servidor.")
+    })
+    ResponseEntity<Void> ativar(
+            @PathVariable Long id
+    );
 }

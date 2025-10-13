@@ -90,6 +90,7 @@ public class Cliente {
         }
     }
 
+    @Transient
     public int getIdade() {
         if (this.dataNascimento == null) {
             return 0;

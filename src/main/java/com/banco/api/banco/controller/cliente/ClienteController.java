@@ -69,4 +69,13 @@ public class ClienteController implements ClienteDocumentation {
         service.inadimplencia(id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/ativar/{id}")
+    @SecurityRequirement(name = "barer-token")
+    public ResponseEntity<Void> ativar(
+            @PathVariable Long id
+    ){
+        service.ativaCliente(id);
+        return ResponseEntity.noContent().build();
+    }
 }

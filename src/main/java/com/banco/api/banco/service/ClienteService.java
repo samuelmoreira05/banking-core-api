@@ -43,6 +43,10 @@ public class ClienteService {
 
         Cliente cliente = clienteMapper.toEntity(dados, senhaHash);
 
+        if (cliente.getIdade() < 18){
+            throw new RegraDeNegocioException("Não é possivel abrir uma conta sendo menor de 18 anos");
+        }
+
         cliente.getUsuario().setRole(UserRole.USER);
         cliente.setStatus(StatusCliente.ATIVO);
 
@@ -83,6 +87,17 @@ public class ClienteService {
         }
         
         cliente.inadimplencia();
+    }
+
+    @Transactional
+    public void ativaCliente(Long id){
+        Cliente cliente = buscarClientePorId(id);
+
+        if (cliente.getStatus() == StatusCliente.ATIVO){
+            throw new RegraDeNegocioException("O cliente ja esta ativo no sistema");
+        }
+
+        cliente.ativar();
     }
 
     protected Cliente buscarClientePorId(Long id){
