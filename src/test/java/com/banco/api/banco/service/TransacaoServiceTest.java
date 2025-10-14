@@ -3,6 +3,7 @@ package com.banco.api.banco.service;
 import com.banco.api.banco.controller.transacao.request.TransacaoEfetuarDadosRequest;
 import com.banco.api.banco.controller.transacao.response.TransacaoMostrarDadosResponse;
 import com.banco.api.banco.enums.TipoTransacao;
+import com.banco.api.banco.mapper.TransacaoMapper;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.model.entity.Transacao;
 import com.banco.api.banco.repository.ContaRepository;
@@ -31,6 +32,7 @@ class TransacaoServiceTest {
     @Mock private ContaRepository contaRepository;
     @InjectMocks private TransacaoService transacaoService;
     @Captor private ArgumentCaptor<Transacao>  transacaoCaptor;
+    @Mock private TransacaoMapper transacaoMapper;
 
     @Test
     void transacaoEfetuadaDepositoComSucesso() {
@@ -81,6 +83,14 @@ class TransacaoServiceTest {
         when(contaRepository.findById(idConta)).thenReturn(Optional.of(conta));
         when(transacaoRepository.save(any(Transacao.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
+
+        when(transacaoMapper.toEntity(any(Conta.class), any(TransacaoEfetuarDadosRequest.class), any(BigDecimal.class)))
+                .thenAnswer(invocation -> {
+                    Conta contaMapper = invocation.getArgument(0);
+                    TransacaoEfetuarDadosRequest transacaoMapper = invocation.getArgument(1);
+                    BigDecimal b = invocation.getArgument(2);
+                    return new Transacao(contaMapper, transacaoMapper.tipo(), transacaoMapper.valor(), b);
+                });
 
         TransacaoMostrarDadosResponse response = transacaoService.efetuarTransacao(transacao);
 
