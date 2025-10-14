@@ -77,36 +77,6 @@ public class Conta {
         this.status = StatusConta.ATIVO;
     }
 
-    public void sacar(BigDecimal valor){
-        if (this.status != StatusConta.ATIVO){
-            throw new IllegalStateException("A conta precisa estar ATIVA para realizar saques.");
-        }
-        if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("O valor do saque deve ser positivo.");
-        }
-        if (this.saldo.compareTo(valor) < 0){
-            throw new IllegalStateException("Saldo insuficiente.");
-        }
-        this.saldo = this.saldo.subtract(valor);
-    }
-
-    public void depositar(BigDecimal valor) {
-        if (this.status != StatusConta.ATIVO){
-            throw new IllegalStateException("A conta precisa estar ATIVA para receber depósitos.");
-        }
-        if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("O valor do depósito deve ser positivo.");
-        }
-        this.saldo = this.saldo.add(valor);
-    }
-
-    @PrePersist
-    public void antesDeSalvar() {
-        if (this.numeroConta == null) {
-            this.numeroConta = gerarNumero();
-        }
-    }
-
     public void executarTransacao(TipoTransacao tipo, BigDecimal valor) {
         if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RegraDeNegocioException("O valor da transação deve ser positivo.");
