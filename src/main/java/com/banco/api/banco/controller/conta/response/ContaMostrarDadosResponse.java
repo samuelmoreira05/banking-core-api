@@ -1,6 +1,7 @@
 package com.banco.api.banco.controller.conta.response;
 
 import com.banco.api.banco.enums.StatusCliente;
+import com.banco.api.banco.enums.StatusConta;
 import com.banco.api.banco.enums.TipoConta;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
@@ -12,9 +13,10 @@ public record ContaMostrarDadosResponse(
         TipoConta tipo,
         String agencia,
         BigDecimal saldo,
-        StatusCliente status,
+        StatusConta status,
         LocalDateTime dataCriacao,
-        Cliente cliente
+        Long idCliente,
+        String nomeCliente
 ) {
     public ContaMostrarDadosResponse(Conta conta) {
         this(
@@ -22,9 +24,10 @@ public record ContaMostrarDadosResponse(
                 conta.getTipoConta(),
                 conta.getAgencia(),
                 conta.getSaldo(),
-                conta.getCliente().getStatus(),
+                conta.getStatus(),
                 conta.getDataCriacao(),
-                conta.getCliente()
+                conta.getCliente().getId(),
+                conta.getCliente().getNome()
         );
     }
 }

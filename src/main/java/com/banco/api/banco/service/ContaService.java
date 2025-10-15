@@ -10,11 +10,14 @@ import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.ClienteRepository;
 import com.banco.api.banco.repository.ContaRepository;
+import com.banco.api.banco.util.GeradorDeContaUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 
 @Service
 public class ContaService {
@@ -22,11 +25,16 @@ public class ContaService {
     private final ContaRepository repository;
     private final ClienteRepository clienteRepository;
     private final ContaMapper contaMapper;
+    private final GeradorDeContaUtil geradorDeContaUtil;
 
-    public ContaService(ContaRepository repository, ClienteRepository clienteRepository, ContaMapper contaMapper) {
+    public ContaService(ContaRepository repository,
+                        ClienteRepository clienteRepository,
+                        ContaMapper contaMapper,
+                        GeradorDeContaUtil geradorDeContaUtil) {
         this.repository = repository;
         this.clienteRepository = clienteRepository;
         this.contaMapper = contaMapper;
+        this.geradorDeContaUtil = geradorDeContaUtil;
     }
 
     @Transactional
@@ -36,6 +44,15 @@ public class ContaService {
 
 
         Conta conta = contaMapper.toEntity(dados, cliente);
+
+        conta.setAgencia(geradorDeContaUtil.gerarAgencia());
+
+        String numeroConta;
+        do {
+            numeroConta = geradorDeContaUtil.gerarNumeroConta();
+        }while (repository.existsByNumeroConta(numeroConta));
+        conta.setNumeroConta(numeroConta);
+
         conta.setStatus(StatusConta.ATIVO);
 
         repository.save(conta);
