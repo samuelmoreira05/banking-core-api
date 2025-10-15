@@ -39,9 +39,9 @@ public class Cartao {
     private Conta conta;
 
     @Enumerated(EnumType.STRING)
-    private StatusCartao statusCartao;
+    private StatusCartao status;
 
-    private int diaVencimento;
+    private int diaVencimentoFatura;
 
     @Column(precision = 10, scale = 2)
     private BigDecimal limiteCredito;

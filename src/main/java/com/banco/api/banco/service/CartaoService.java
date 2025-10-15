@@ -16,6 +16,8 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 @Service
 public class CartaoService {
 
@@ -37,35 +39,33 @@ public class CartaoService {
 
     @Transactional
     public CartaoDebitoMostrarDadosResponse solicitaCartaoDebito(CartaoDebitoCriarDadosRequest dados) {
-        Conta conta = contaRepository.findById(dados.idConta())
-                .orElseThrow(() -> new EntityNotFoundException("A conta não foi encontrada na base de dados"));
+        Conta conta = buscarContaPorId(dados.idConta());
 
         Cliente cliente = conta.getCliente();
 
         if (cliente.getStatus() != StatusCliente.ATIVO){
-            throw new RegraDeNegocioException("PAra solicitar um cartao o cliente deve estar com Status de ativo, status atual: " + cliente.getStatus());
+            throw new RegraDeNegocioException("Para solicitar um cartao o cliente deve estar com Status de ativo, status atual: " + cliente.getStatus());
         }
 
         Cartao cartao = cartaoMapper.toEntity(dados, conta);
 
-        String numeroGerado = GeradorDeCartaoUtil.geraNumeroCartao();
-        String cvvGerado = GeradorDeCartaoUtil.geraCvv();
+        String numeroGerado = geradorDeCartaoUtil.geraNumeroCartao();
+        String cvvGerado = geradorDeCartaoUtil.geraCvv();
 
         cartao.setNumeroCartao(numeroGerado);
         cartao.setCvv(cvvGerado);
-        cartao.setStatusCartao(StatusCartao.CARTAO_ATIVO);
+
+        cartao.setDataVencimento(LocalDate.now().plusYears(5));
+
+        cartao.setStatus(StatusCartao.CARTAO_ATIVO);
 
         cartaoRepository.save(cartao);
 
         return new CartaoDebitoMostrarDadosResponse(cartao);
     }
 
-    //TODO Precisa validar se o cliente existe e tem um Status_ativo
-    //TODO O cliente pode escolher solicitar um cartão de credito ou debito
-
     private Conta buscarContaPorId(Long id) {
         return contaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Conta com ID " + id + " não encontrada."));
-
     }
 }
