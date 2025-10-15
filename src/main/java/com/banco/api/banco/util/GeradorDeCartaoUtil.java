@@ -1,7 +1,10 @@
 package com.banco.api.banco.util;
 
+import org.springframework.stereotype.Component;
+
 import java.security.SecureRandom;
 
+@Component
 public class GeradorDeCartaoUtil {
 
     private static final String BIN_BANKING = "121119";

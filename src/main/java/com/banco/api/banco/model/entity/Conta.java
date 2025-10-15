@@ -34,9 +34,8 @@ public class Conta {
     @Column(name = "tipo_conta", nullable = false)
     private TipoConta tipoConta;
 
-    @Builder.Default
     @Column(name = "agencia")
-    private String agencia = "121";
+    private String agencia;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id")
@@ -55,24 +54,27 @@ public class Conta {
 
     public void encerraConta(){
         if (this.status == StatusConta.ENCERRADA) {
-            throw new IllegalStateException("A conta já está encerrada.");
+            throw new RegraDeNegocioException("A conta já está encerrada.");
         }
         if (saldo.compareTo(BigDecimal.ZERO) != 0) {
-            throw new IllegalStateException("A conta não pode ser encerrada com saldo diferente de zero.");
+            throw new RegraDeNegocioException("A conta não pode ser encerrada com saldo diferente de zero.");
         }
         this.status = StatusConta.ENCERRADA;
     }
 
     public void suspendeConta(){
         if (this.status == StatusConta.SUSPENSA || this.status == StatusConta.ENCERRADA) {
-            throw new IllegalStateException("A conta não pode ser suspensa.");
+            throw new RegraDeNegocioException("A conta não pode ser suspensa.");
         }
         this.status = StatusConta.SUSPENSA;
     }
 
     public void ativaConta(){
         if (this.status == StatusConta.ATIVO) {
-            throw new IllegalStateException("A conta já está ativa.");
+            throw new RegraDeNegocioException("A conta já está ativa.");
+        }
+        if (this.status == StatusConta.ENCERRADA) {
+            throw new RegraDeNegocioException("Não é possível reativar uma conta encerrada.");
         }
         this.status = StatusConta.ATIVO;
     }
@@ -86,15 +88,11 @@ public class Conta {
             this.saldo = this.saldo.add(valor);
         } else if (tipo == TipoTransacao.SAQUE) {
             if (this.saldo.compareTo(valor) < 0) {
-                throw new IllegalStateException("Saldo insuficiente para realizar o saque.");
+                throw new RegraDeNegocioException("Saldo insuficiente para realizar o saque.");
             }
             this.saldo = this.saldo.subtract(valor);
         } else {
-            throw new IllegalArgumentException("Tipo de transação não suportado.");
+            throw new RegraDeNegocioException("Tipo de transação não suportado.");
         }
-    }
-
-    private String gerarNumero() {
-        return "ACC-" + UUID.randomUUID().toString().toUpperCase().substring(0, 8);
     }
 }
