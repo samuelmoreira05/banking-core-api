@@ -1,5 +1,6 @@
 package com.banco.api.banco.mapper;
 
+import com.banco.api.banco.controller.cartao.request.CartaoCreditoCriarDadosRequest;
 import com.banco.api.banco.controller.cartao.request.CartaoDebitoCriarDadosRequest;
 import com.banco.api.banco.enums.TipoCartao;
 import com.banco.api.banco.model.entity.Cartao;
@@ -21,4 +22,14 @@ public class CartaoMapper {
 
         return cartao;
     }
+
+    public Cartao toEntityCredito(CartaoCreditoCriarDadosRequest dados, Conta conta){
+        Cartao cartao = Cartao.builder()
+                .conta(conta)
+                .tipoCartao(TipoCartao.CREDITO)
+                .build();
+
+        return cartao;
+    }
+
 }
