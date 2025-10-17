@@ -62,9 +62,7 @@ public class CartaoService {
 
         cartao.setNumeroCartao(numeroGerado);
         cartao.setCvv(cvvGerado);
-
         cartao.setDataVencimento(LocalDate.now().plusYears(5));
-
         cartao.setStatus(StatusCartao.CARTAO_ATIVO);
 
         cartaoRepository.save(cartao);
@@ -80,16 +78,23 @@ public class CartaoService {
         validadores.forEach(v -> v.validar(cliente, conta));
 
         Cartao cartao = cartaoMapper.toEntityCredito(dados, conta);
-        if (cartaoRepository.existsByContaAndTipoCartao(cartao, cartao.getTipoCartao())){
-            throw new RegraDeNegocioException("O cliente ja tem um cartão de credito");
-        }
 
-        return new CartaoCreditoMostrarDadosResponse(cartao);
+        BigDecimal limite;
+        limite = conta.getSaldo().multiply(new BigDecimal(0.5));
+        String numeroGerado = geradorDeCartaoUtil.geraNumeroCartao();
+        String cvvGerado = geradorDeCartaoUtil.geraCvv();
+
+        cartao.setNumeroCartao(numeroGerado);
+        cartao.setCvv(cvvGerado);
+        cartao.setLimiteCredito(limite);
+        cartao.setDiaVencimentoFatura(10);
+        cartao.setDataVencimento(LocalDate.now().plusYears(5));
+        cartao.setStatus(StatusCartao.CARTAO_ATIVO);
+
+        cartaoRepository.save(cartao);
+
+        return cartaoMapper.toCreditoResponse(cartao);
     }
-
-    //TODO criar o mapper para fazer o builder do cartao
-    //TODO setar o status em que o cartao ira ficar antes de ser aprovado (aguardando solicitacao)
-    //TODO salvar
 
     private Conta buscarContaPorId(Long id) {
         return contaRepository.findById(id)
