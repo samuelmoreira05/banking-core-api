@@ -4,6 +4,7 @@ import com.banco.api.banco.controller.cartao.request.CartaoCreditoCriarDadosRequ
 import com.banco.api.banco.controller.cartao.request.CartaoDebitoCriarDadosRequest;
 import com.banco.api.banco.controller.cartao.response.CartaoCreditoMostrarDadosResponse;
 import com.banco.api.banco.controller.cartao.response.CartaoDebitoMostrarDadosResponse;
+import com.banco.api.banco.controller.documentation.CartaoDocumentation;
 import com.banco.api.banco.service.CartaoService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("api/cartoes")
-public class CartaoController {
+public class CartaoController implements CartaoDocumentation {
 
     private final CartaoService cartaoService;
 
