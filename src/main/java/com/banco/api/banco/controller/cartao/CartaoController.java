@@ -1,6 +1,8 @@
 package com.banco.api.banco.controller.cartao;
 
+import com.banco.api.banco.controller.cartao.request.CartaoCreditoCriarDadosRequest;
 import com.banco.api.banco.controller.cartao.request.CartaoDebitoCriarDadosRequest;
+import com.banco.api.banco.controller.cartao.response.CartaoCreditoMostrarDadosResponse;
 import com.banco.api.banco.controller.cartao.response.CartaoDebitoMostrarDadosResponse;
 import com.banco.api.banco.service.CartaoService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -28,6 +30,15 @@ public class CartaoController {
             @Valid
             @RequestBody CartaoDebitoCriarDadosRequest dados){
         CartaoDebitoMostrarDadosResponse response = cartaoService.solicitaCartaoDebito(dados);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/solicita/credito")
+    @SecurityRequirement(name = "barer-token")
+    public ResponseEntity<CartaoCreditoMostrarDadosResponse> solicitaCartaoCredito(
+            @Valid
+            @RequestBody CartaoCreditoCriarDadosRequest dados){
+        CartaoCreditoMostrarDadosResponse response = cartaoService.solicitaCartaoCredito(dados);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
