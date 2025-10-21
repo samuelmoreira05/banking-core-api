@@ -51,7 +51,7 @@ class CartaoServiceTest {
         conta.setId(idConta);
         conta.setCliente(cliente);
 
-        CartaoDebitoCriarDadosRequest cartao = new CartaoDebitoCriarDadosRequest(
+        CartaoDebitoCriarDadosRequest dadosSolicitacao = new CartaoDebitoCriarDadosRequest(
                 conta.getId()
         );
 
@@ -66,13 +66,19 @@ class CartaoServiceTest {
         when(geradorDeCartaoUtil.geraCvv()).thenReturn("123");
         when(cartaoRepository.save(any(Cartao.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        verify(cartaoRepository).save(captor.capture());
+        var response = cartaoService.solicitaCartaoDebito(dadosSolicitacao);
 
+        assertNotNull(response);
+        assertEquals("1111222233334444", response.numeroCartao());
+
+        verify(cartaoRepository).save(captor.capture());
         Cartao cartaoSalvo = captor.getValue();
 
-        assertNotNull(cartao);
+        assertNotNull(cartaoSalvo);
         assertEquals("1111222233334444", cartaoSalvo.getNumeroCartao());
         assertEquals("123", cartaoSalvo.getCvv());
         assertEquals(StatusCartao.CARTAO_ATIVO, cartaoSalvo.getStatus());
+        assertNotNull(cartaoSalvo.getDataVencimento());
+        assertEquals(conta, cartaoSalvo.getConta());
     }
 }
