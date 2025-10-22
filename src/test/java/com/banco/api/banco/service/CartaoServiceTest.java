@@ -4,6 +4,7 @@ import com.banco.api.banco.controller.cartao.request.CartaoDebitoCriarDadosReque
 import com.banco.api.banco.enums.StatusCartao;
 import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.enums.TipoCartao;
+import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.mapper.CartaoMapper;
 import com.banco.api.banco.model.entity.Cartao;
 import com.banco.api.banco.model.entity.Cliente;
@@ -23,8 +24,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CartaoServiceTest {
@@ -80,5 +80,19 @@ class CartaoServiceTest {
         assertEquals(StatusCartao.CARTAO_ATIVO, cartaoSalvo.getStatus());
         assertNotNull(cartaoSalvo.getDataVencimento());
         assertEquals(conta, cartaoSalvo.getConta());
+    }
+
+    @Test
+    void solicitacaoCartaoDebitoFalhaQuandoContaNaoEncontrada() {
+        var idConta = 1L;
+        CartaoDebitoCriarDadosRequest dadosSolicitacao = new CartaoDebitoCriarDadosRequest(idConta);
+
+        when(contaRepository.findById(idConta)).thenReturn(Optional.empty());
+
+        assertThrows(RegraDeNegocioException.class, () -> {
+            cartaoService.solicitaCartaoDebito(dadosSolicitacao);
+        });
+
+        verify(cartaoRepository, never()).save(any(Cartao.class));
     }
 }
