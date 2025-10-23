@@ -1,6 +1,8 @@
 package com.banco.api.banco.service;
 
+import com.banco.api.banco.controller.cartao.request.CartaoCreditoCriarDadosRequest;
 import com.banco.api.banco.controller.cartao.request.CartaoDebitoCriarDadosRequest;
+import com.banco.api.banco.controller.cartao.response.CartaoCreditoMostrarDadosResponse;
 import com.banco.api.banco.enums.StatusCartao;
 import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.enums.TipoCartao;
@@ -20,6 +22,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -94,5 +99,57 @@ class CartaoServiceTest {
         });
 
         verify(cartaoRepository, never()).save(any(Cartao.class));
+    }
+
+    @Test
+    void solicitaCartaoCreditoQuandoClienteElegivelEntaoCriaCartao() {
+        var idConta = 1L;
+        var idCliente = 2L;
+        var limiteEsperado = new BigDecimal("500.00");
+        var numeroCartaoEsperado = "4444555566667777";
+        var cvvEsperado = "321";
+        var dataVencimentoEsperada = LocalDate.now().plusYears(5);
+
+        Cliente cliente = new Cliente();
+        cliente.setId(idCliente);
+        cliente.setStatus(StatusCliente.ATIVO);
+        cliente.setDataNascimento(LocalDate.now().minusYears(25));
+
+        Conta conta = new Conta();
+        conta.setId(idConta);
+        conta.setCliente(cliente);
+        conta.setSaldo(new BigDecimal("1000.00"));
+
+        CartaoCreditoCriarDadosRequest dadosSolicitacao = new CartaoCreditoCriarDadosRequest(idConta);
+        Cartao cartaoBase = Cartao.builder().conta(conta).tipoCartao(TipoCartao.CREDITO).build();
+        CartaoCreditoMostrarDadosResponse mockResponse = new CartaoCreditoMostrarDadosResponse(
+                cliente.getNome(), conta.getAgencia(), conta.getNumeroConta(), numeroCartaoEsperado, dataVencimentoEsperada.format(DateTimeFormatter.ofPattern("MM/yy")), 10, limiteEsperado
+        );
+
+        when(contaRepository.findById(idConta)).thenReturn(Optional.of(conta));
+
+        when(cartaoMapper.toEntityCredito(dadosSolicitacao, conta)).thenReturn(cartaoBase);
+        when(geradorDeCartaoUtil.geraNumeroCartao()).thenReturn(numeroCartaoEsperado);
+        when(geradorDeCartaoUtil.geraCvv()).thenReturn(cvvEsperado);
+        when(cartaoRepository.save(any(Cartao.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(cartaoMapper.toCreditoResponse(any(Cartao.class))).thenReturn(mockResponse);
+
+        CartaoCreditoMostrarDadosResponse response = cartaoService.solicitaCartaoCredito(dadosSolicitacao);
+
+        assertNotNull(response);
+        assertEquals(mockResponse, response);
+
+        verify(cartaoRepository).save(captor.capture());
+        Cartao cartaoSalvo = captor.getValue();
+
+        assertNotNull(cartaoSalvo);
+        assertEquals(numeroCartaoEsperado, cartaoSalvo.getNumeroCartao());
+        assertEquals(cvvEsperado, cartaoSalvo.getCvv());
+        assertEquals(limiteEsperado, cartaoSalvo.getLimiteCredito());
+        assertEquals(10, cartaoSalvo.getDiaVencimentoFatura());
+        assertEquals(dataVencimentoEsperada, cartaoSalvo.getDataVencimento());
+        assertEquals(StatusCartao.CARTAO_ATIVO, cartaoSalvo.getStatus());
+        assertEquals(TipoCartao.CREDITO, cartaoSalvo.getTipoCartao());
+        assertEquals(conta, cartaoSalvo.getConta());
     }
 }
