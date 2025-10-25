@@ -13,6 +13,7 @@ import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.CartaoRepository;
 import com.banco.api.banco.repository.ContaRepository;
+import com.banco.api.banco.service.validadores.cartao.ValidadorSolicitacaoCredito;
 import com.banco.api.banco.util.GeradorDeCartaoUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,6 +40,7 @@ class CartaoServiceTest {
     @Mock private CartaoMapper cartaoMapper;
     @Mock private GeradorDeCartaoUtil geradorDeCartaoUtil;
     @Mock private CartaoRepository cartaoRepository;
+    @Mock private List<ValidadorSolicitacaoCredito> validadores;
 
     @InjectMocks private CartaoService cartaoService;
 
@@ -151,5 +154,19 @@ class CartaoServiceTest {
         assertEquals(StatusCartao.CARTAO_ATIVO, cartaoSalvo.getStatus());
         assertEquals(TipoCartao.CREDITO, cartaoSalvo.getTipoCartao());
         assertEquals(conta, cartaoSalvo.getConta());
+    }
+
+    @Test
+    void solicitaCartaoCreditoQuandoContaNaoExisteEntaoLancaRegraDeNegocioException() {
+        var idContaInexistente = 99L;
+        CartaoCreditoCriarDadosRequest dadosSolicitacao = new CartaoCreditoCriarDadosRequest(idContaInexistente);
+        when(contaRepository.findById(idContaInexistente)).thenReturn(Optional.empty());
+
+        assertThrows(RegraDeNegocioException.class, () -> {
+            cartaoService.solicitaCartaoCredito(dadosSolicitacao);
+        });
+
+        verify(cartaoRepository, never()).save(any(Cartao.class));
+        verify(validadores, never()).forEach(any());
     }
 }
