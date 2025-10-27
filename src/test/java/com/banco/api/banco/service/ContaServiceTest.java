@@ -5,6 +5,7 @@ import com.banco.api.banco.controller.conta.response.ContaListagemDadosResponse;
 import com.banco.api.banco.controller.conta.response.ContaMostrarDadosResponse;
 import com.banco.api.banco.enums.StatusConta;
 import com.banco.api.banco.enums.TipoConta;
+import com.banco.api.banco.mapper.ContaMapper;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.ClienteRepository;
@@ -33,6 +34,7 @@ class ContaServiceTest {
 
     @Mock private ContaRepository contaRepository;
     @Mock private ClienteRepository clienteRepository;
+    @Mock private ContaMapper contaMapper;
     @InjectMocks private ContaService contaService;
     @Captor private ArgumentCaptor<Conta> contaArgumentCaptor;
 
@@ -51,7 +53,7 @@ class ContaServiceTest {
 
         assertNotNull(response);
         assertEquals(TipoConta.CONTA_CORRENTE, response.tipo());
-        assertEquals("Samuel", response.cliente().getNome());
+        assertEquals("Samuel", response.nomeCliente());
 
         verify(contaRepository).save(contaArgumentCaptor.capture());
         Conta conta = contaArgumentCaptor.getValue();

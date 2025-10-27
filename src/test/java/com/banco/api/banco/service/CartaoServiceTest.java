@@ -15,6 +15,7 @@ import com.banco.api.banco.repository.CartaoRepository;
 import com.banco.api.banco.repository.ContaRepository;
 import com.banco.api.banco.service.validadores.cartao.ValidadorSolicitacaoCredito;
 import com.banco.api.banco.util.GeradorDeCartaoUtil;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -97,7 +98,7 @@ class CartaoServiceTest {
 
         when(contaRepository.findById(idConta)).thenReturn(Optional.empty());
 
-        assertThrows(RegraDeNegocioException.class, () -> {
+        assertThrows(EntityNotFoundException.class, () -> {
             cartaoService.solicitaCartaoDebito(dadosSolicitacao);
         });
 
@@ -162,7 +163,7 @@ class CartaoServiceTest {
         CartaoCreditoCriarDadosRequest dadosSolicitacao = new CartaoCreditoCriarDadosRequest(idContaInexistente);
         when(contaRepository.findById(idContaInexistente)).thenReturn(Optional.empty());
 
-        assertThrows(RegraDeNegocioException.class, () -> {
+        assertThrows(EntityNotFoundException.class, () -> {
             cartaoService.solicitaCartaoCredito(dadosSolicitacao);
         });
 

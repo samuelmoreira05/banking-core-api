@@ -6,6 +6,7 @@ import com.banco.api.banco.controller.cliente.response.ClienteListagemDadosRespo
 import com.banco.api.banco.controller.cliente.response.ClienteMostrarDadosResponse;
 import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.infra.exception.RegraDeNegocioException;
+import com.banco.api.banco.mapper.ClienteMapper;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.repository.ClienteRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,6 +32,7 @@ class ClienteServiceTest {
 
     @Mock private ClienteRepository clienteRepository;
     @Mock private PasswordEncoder passwordEncoder;
+    @Mock private ClienteMapper clienteMapper;
     @InjectMocks private ClienteService clienteService;
     @Captor private ArgumentCaptor<Cliente> clienteArgumentCaptor;
 
