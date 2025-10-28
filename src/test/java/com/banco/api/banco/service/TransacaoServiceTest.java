@@ -52,6 +52,14 @@ class TransacaoServiceTest {
         when(transacaoRepository.save(any(Transacao.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
+        when(transacaoMapper.toEntity(any(Conta.class), any(TransacaoEfetuarDadosRequest.class), any(BigDecimal.class)))
+                .thenAnswer(invocation -> {
+                    Conta c = invocation.getArgument(0);
+                    TransacaoEfetuarDadosRequest d = invocation.getArgument(1);
+                    BigDecimal s = invocation.getArgument(2);
+                    return new Transacao(c, d.tipo(), d.valor(), s);
+                });
+
         TransacaoMostrarDadosResponse response = transacaoService.efetuarTransacao(transacao);
 
         assertNotNull(response);

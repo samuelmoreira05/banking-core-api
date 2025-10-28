@@ -10,6 +10,7 @@ import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.ClienteRepository;
 import com.banco.api.banco.repository.ContaRepository;
+import com.banco.api.banco.util.GeradorDeContaUtil;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +35,7 @@ class ContaServiceTest {
 
     @Mock private ContaRepository contaRepository;
     @Mock private ClienteRepository clienteRepository;
+    @Mock private GeradorDeContaUtil geradorDeContaUtil;
     @Mock private ContaMapper contaMapper;
     @InjectMocks private ContaService contaService;
     @Captor private ArgumentCaptor<Conta> contaArgumentCaptor;
@@ -48,6 +50,11 @@ class ContaServiceTest {
         cliente.setNome("Samuel");
 
         when(clienteRepository.findById(idCliente)).thenReturn(Optional.of(cliente));
+        when(geradorDeContaUtil.gerarAgencia()).thenReturn("0001");
+        when(geradorDeContaUtil.gerarNumeroConta()).thenReturn("123456");
+        when(contaRepository.existsByNumeroConta("123456")).thenReturn(false);
+        when(contaMapper.toEntity(any(), any())).thenReturn(Conta.builder().cliente(cliente).tipoConta(TipoConta.CONTA_CORRENTE).build());
+        when(contaRepository.save(any(Conta.class))).thenAnswer(inv -> inv.getArgument(0));
 
         ContaMostrarDadosResponse response = contaService.criarConta(dados);
 
@@ -60,6 +67,8 @@ class ContaServiceTest {
 
         assertEquals(cliente, conta.getCliente());
         assertEquals(TipoConta.CONTA_CORRENTE, conta.getTipoConta());
+        verify(geradorDeContaUtil).gerarAgencia();
+        verify(geradorDeContaUtil).gerarNumeroConta();
     }
 
     @Test

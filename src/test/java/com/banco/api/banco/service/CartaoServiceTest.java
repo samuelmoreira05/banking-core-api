@@ -40,9 +40,8 @@ class CartaoServiceTest {
     @Mock private ContaRepository contaRepository;
     @Mock private CartaoMapper cartaoMapper;
     @Mock private GeradorDeCartaoUtil geradorDeCartaoUtil;
-    @Mock private CartaoRepository cartaoRepository;
     @Mock private List<ValidadorSolicitacaoCredito> validadores;
-
+    @Mock private CartaoRepository cartaoRepository;
     @InjectMocks private CartaoService cartaoService;
 
     @Captor private ArgumentCaptor<Cartao> captor;
