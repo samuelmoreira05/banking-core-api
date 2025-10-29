@@ -8,6 +8,7 @@ import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.mapper.ClienteMapper;
 import com.banco.api.banco.model.entity.Cliente;
+import com.banco.api.banco.model.entity.Usuario;
 import com.banco.api.banco.repository.ClienteRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
@@ -51,6 +52,24 @@ class ClienteServiceTest {
 
         when(clienteRepository.existsByCpf(dados.cpf())).thenReturn(false);
         when(passwordEncoder.encode(dados.senha())).thenReturn("senha_cripto");
+
+        Usuario usuarioMapeado = Usuario.builder()
+                .login(dados.login())
+                .senha("senha_cripto")
+                .build();
+
+        Cliente clienteMapeado = Cliente.builder()
+                .nome(dados.nome())
+                .cpf(dados.cpf())
+                .email(dados.email())
+                .dataNascimento(dados.dataNascimento())
+                .endereco(dados.endereco())
+                .telefone(dados.telefone())
+                .usuario(usuarioMapeado)
+                .build();
+
+        when(clienteMapper.toEntity(any(ClienteCadastroDadosRequest.class), eq("senha_cripto")))
+                .thenReturn(clienteMapeado);
 
         ClienteMostrarDadosResponse response = clienteService.cadastraCliente(dados);
 

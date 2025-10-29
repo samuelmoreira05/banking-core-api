@@ -9,7 +9,7 @@ public class GeradorDeCartaoUtil {
 
     private static final String BIN_BANKING = "121119";
 
-    public static String geraNumeroCartao() {
+    public String geraNumeroCartao() {
         SecureRandom random = new SecureRandom();
         long numeroConta = random.nextLong(999_999_999);
 
@@ -22,7 +22,7 @@ public class GeradorDeCartaoUtil {
         return prefixo + digitoVerificador;
     }
 
-    private static String calculadigitoVerificador(String numeroParcial) {
+    private String calculadigitoVerificador(String numeroParcial) {
         int soma = 0;
         boolean isSecondDigit = false;
         for (int i = numeroParcial.length() - 1; i >= 0; i--) {
@@ -42,7 +42,7 @@ public class GeradorDeCartaoUtil {
         return String.valueOf(digitoVerificador);
     }
 
-    public static String geraCvv() {
+    public String geraCvv() {
         SecureRandom random = new SecureRandom();
         int cvv = random.nextInt(1000);
         return String.format("%03d", cvv);

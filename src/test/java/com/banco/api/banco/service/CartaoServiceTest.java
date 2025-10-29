@@ -108,7 +108,7 @@ class CartaoServiceTest {
     void solicitaCartaoCreditoQuandoClienteElegivelEntaoCriaCartao() {
         var idConta = 1L;
         var idCliente = 2L;
-        var limiteEsperado = new BigDecimal("500.00");
+        var limiteEsperado = new BigDecimal("500.000");
         var numeroCartaoEsperado = "4444555566667777";
         var cvvEsperado = "321";
         var dataVencimentoEsperada = LocalDate.now().plusYears(5);
