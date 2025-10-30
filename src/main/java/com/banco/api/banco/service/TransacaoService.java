@@ -42,7 +42,7 @@ public class TransacaoService {
 
         Transacao transacao = salvarTransacao(conta, dados, saldoAntes);
 
-        return new TransacaoMostrarDadosResponse(transacao);
+        return transacaoMapper.toResponse(transacao);
     }
 
     private Conta buscarContaPorId(Long id) {

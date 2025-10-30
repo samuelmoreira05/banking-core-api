@@ -1,6 +1,7 @@
 package com.banco.api.banco.mapper;
 
 import com.banco.api.banco.controller.transacao.request.TransacaoEfetuarDadosRequest;
+import com.banco.api.banco.controller.transacao.response.TransacaoMostrarDadosResponse;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.model.entity.Transacao;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class TransacaoMapper {
 
-    public Transacao toEntity(Conta conta, TransacaoEfetuarDadosRequest dados, BigDecimal saldoAnterior){
+    public Transacao toEntity(Conta conta, TransacaoEfetuarDadosRequest dados, BigDecimal saldoAnterior) {
         Transacao transacao = Transacao.builder()
                 .conta(conta)
                 .tipo(dados.tipo())
@@ -23,5 +24,12 @@ public class TransacaoMapper {
                 .build();
 
         return transacao;
+    }
+
+    public TransacaoMostrarDadosResponse toResponse(Transacao transacao) {
+        if (transacao == null) {
+            return null;
+        }
+        return new TransacaoMostrarDadosResponse(transacao);
     }
 }
