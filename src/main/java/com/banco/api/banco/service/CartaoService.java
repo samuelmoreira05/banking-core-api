@@ -85,9 +85,28 @@ public class CartaoService {
         return cartaoMapper.toCreditoResponse(cartao);
     }
 
+    @Transactional
+    public void bloqueiaCartao(Long id) {
+        Cartao cartao = buscarCartaoPorId(id);
+
+        cartao.bloqueiaCartao();
+    }
+
+    @Transactional
+    public void ativarCartao(Long id) {
+        Cartao cartao = buscarCartaoPorId(id);
+
+        cartao.ativaCartao();
+    }
+
     private Conta buscarContaPorId(Long id) {
         return contaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Conta com ID " + id + " não encontrada."));
+    }
+
+    private Cartao buscarCartaoPorId(Long id) {
+        return cartaoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Cartao não encontrado na base de dados!"));
     }
 
     private Cartao finalizarCriacaoCartao (Cartao cartao) {

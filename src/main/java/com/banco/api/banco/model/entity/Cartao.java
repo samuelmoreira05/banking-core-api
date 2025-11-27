@@ -2,6 +2,7 @@ package com.banco.api.banco.model.entity;
 
 import com.banco.api.banco.enums.StatusCartao;
 import com.banco.api.banco.enums.TipoCartao;
+import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -45,4 +46,18 @@ public class Cartao {
 
     @Column(precision = 10, scale = 2)
     private BigDecimal limiteCredito;
+
+    public void bloqueiaCartao() {
+        if (this.status == StatusCartao.CARTAO_BLOQUEADO){
+            throw new RegraDeNegocioException("O cartao já está bloqueado.");
+        }
+        this.status = StatusCartao.CARTAO_BLOQUEADO;
+    }
+
+    public void ativaCartao() {
+        if (this.status == StatusCartao.CARTAO_ATIVO){
+            throw new RegraDeNegocioException("O cartao já está ativado.");
+        }
+        this.status = StatusCartao.CARTAO_ATIVO;
+    }
 }
