@@ -21,19 +21,21 @@ public class CartaoMapper {
 
     private static final DateTimeFormatter FORMATADOR_DATA = DateTimeFormatter.ofPattern("MM/yy");
 
-    public Cartao toEntity(CartaoDebitoCriarDadosRequest dados, Conta conta) {
+    public Cartao toEntity(CartaoDebitoCriarDadosRequest dados, Conta conta, String senhaCriptografada) {
         Cartao cartao = Cartao.builder()
                 .conta(conta)
                 .tipoCartao(TipoCartao.DEBITO)
+                .senha(senhaCriptografada)
                 .build();
 
         return cartao;
     }
 
-    public Cartao toEntityCredito(CartaoCreditoCriarDadosRequest dados, Conta conta){
+    public Cartao toEntityCredito(CartaoCreditoCriarDadosRequest dados, Conta conta, String senhaCriptografada){
         Cartao cartao = Cartao.builder()
                 .conta(conta)
                 .tipoCartao(TipoCartao.CREDITO)
+                .senha(senhaCriptografada)
                 .build();
 
         return cartao;

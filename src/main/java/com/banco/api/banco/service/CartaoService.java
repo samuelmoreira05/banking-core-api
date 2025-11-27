@@ -18,6 +18,7 @@ import com.banco.api.banco.service.validadores.cartao.ValidadorSolicitacaoCredit
 import com.banco.api.banco.util.GeradorDeCartaoUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -29,6 +30,7 @@ public class CartaoService {
 
     private final CartaoRepository cartaoRepository;
     private final CartaoMapper cartaoMapper;
+    private final PasswordEncoder passwordEncoder;
     private final ContaRepository contaRepository;
     private final GeradorDeCartaoUtil geradorDeCartaoUtil;
     private final CalculadoraLimiteCartao calculadoraLimiteCartao;
@@ -36,12 +38,13 @@ public class CartaoService {
 
 
     public CartaoService(CartaoRepository cartaoRepository,
-                         CartaoMapper cartaoMapper,
+                         CartaoMapper cartaoMapper, PasswordEncoder passwordEncoder,
                          ContaRepository contaRepository,
                          GeradorDeCartaoUtil geradorDeCartaoUtil, CalculadoraLimiteCartao calculadoraLimiteCartao,
                          List<ValidadorSolicitacaoCredito> validadores) {
         this.cartaoRepository = cartaoRepository;
         this.cartaoMapper = cartaoMapper;
+        this.passwordEncoder = passwordEncoder;
         this.contaRepository = contaRepository;
         this.geradorDeCartaoUtil = geradorDeCartaoUtil;
         this.calculadoraLimiteCartao = calculadoraLimiteCartao;
@@ -58,7 +61,9 @@ public class CartaoService {
             throw new RegraDeNegocioException("Para solicitar um cartao o cliente deve estar com Status de ativo, status atual: " + cliente.getStatus());
         }
 
-        Cartao cartao = cartaoMapper.toEntity(dados, conta);
+        var senhaHash = passwordEncoder.encode(dados.senha());
+
+        Cartao cartao = cartaoMapper.toEntity(dados, conta, senhaHash);
 
         cartao = finalizarCriacaoCartao(cartao);
 
@@ -72,7 +77,9 @@ public class CartaoService {
 
         validadores.forEach(v -> v.validar(cliente, conta));
 
-        Cartao cartao = cartaoMapper.toEntityCredito(dados, conta);
+        var senhaHash = passwordEncoder.encode(dados.senha());
+
+        Cartao cartao = cartaoMapper.toEntityCredito(dados, conta, senhaHash);
 
         BigDecimal limiteCartao = calculadoraLimiteCartao.limite(conta);
 

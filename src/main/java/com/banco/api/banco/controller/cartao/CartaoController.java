@@ -40,21 +40,15 @@ public class CartaoController implements CartaoDocumentation {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @DeleteMapping
-    @SecurityRequirement(name = "barer-token")
-    public ResponseEntity<Void> ativarCartao(
-            @PathVariable Long id
-    ){
-        cartaoService.ativarCartao(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    @PutMapping("/{id}/bloquear")
+    public ResponseEntity<Void> bloquearCartao(@PathVariable Long id) {
+        cartaoService.bloqueiaCartao(id);
+        return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping
-    @SecurityRequirement(name = "barer-token")
-    public ResponseEntity<Void> bloquearCartao(
-            @PathVariable Long id
-    ){
-        cartaoService.bloqueiaCartao(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    @PutMapping("/{id}/ativar")
+    public ResponseEntity<Void> ativarCartao(@PathVariable Long id) {
+        cartaoService.ativarCartao(id);
+        return ResponseEntity.noContent().build();
     }
 }

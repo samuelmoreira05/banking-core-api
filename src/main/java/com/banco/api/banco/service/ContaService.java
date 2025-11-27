@@ -4,7 +4,6 @@ import com.banco.api.banco.controller.conta.request.ContaCadastroDadosRequest;
 import com.banco.api.banco.controller.conta.response.ContaListagemDadosResponse;
 import com.banco.api.banco.controller.conta.response.ContaMostrarDadosResponse;
 import com.banco.api.banco.enums.StatusConta;
-import com.banco.api.banco.enums.TipoConta;
 import com.banco.api.banco.mapper.ContaMapper;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
@@ -16,8 +15,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
 
 @Service
 public class ContaService {

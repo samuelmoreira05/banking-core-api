@@ -44,6 +44,9 @@ public class Cartao {
 
     private int diaVencimentoFatura;
 
+    @Column(nullable = false)
+    private String senha;
+
     @Column(precision = 10, scale = 2)
     private BigDecimal limiteCredito;
 
