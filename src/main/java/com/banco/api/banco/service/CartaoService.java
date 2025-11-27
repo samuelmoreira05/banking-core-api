@@ -30,8 +30,8 @@ public class CartaoService {
     private final CartaoRepository cartaoRepository;
     private final CartaoMapper cartaoMapper;
     private final ContaRepository contaRepository;
-    public final GeradorDeCartaoUtil geradorDeCartaoUtil;
-    public final CalculadoraLimiteCartao calculadoraLimiteCartao;
+    private final GeradorDeCartaoUtil geradorDeCartaoUtil;
+    private final CalculadoraLimiteCartao calculadoraLimiteCartao;
     private final List<ValidadorSolicitacaoCredito> validadores;
 
 
@@ -60,7 +60,7 @@ public class CartaoService {
 
         Cartao cartao = cartaoMapper.toEntity(dados, conta);
 
-        finalizarCriacaoCartao(cartao);
+        cartao = finalizarCriacaoCartao(cartao);
 
         return cartaoMapper.toDebitoResponse(cartao);
     }
@@ -80,7 +80,7 @@ public class CartaoService {
 
         cartao.setDiaVencimentoFatura(10);
 
-        finalizarCriacaoCartao(cartao);
+        cartao = finalizarCriacaoCartao(cartao);
 
         return cartaoMapper.toCreditoResponse(cartao);
     }
