@@ -13,6 +13,7 @@ import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.CartaoRepository;
 import com.banco.api.banco.repository.ContaRepository;
+import com.banco.api.banco.service.calculadora.CalculadoraLimiteCartao;
 import com.banco.api.banco.service.validadores.cartao.ValidadorSolicitacaoCredito;
 import com.banco.api.banco.util.GeradorDeCartaoUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -30,18 +31,20 @@ public class CartaoService {
     private final CartaoMapper cartaoMapper;
     private final ContaRepository contaRepository;
     public final GeradorDeCartaoUtil geradorDeCartaoUtil;
+    public final CalculadoraLimiteCartao calculadoraLimiteCartao;
     private final List<ValidadorSolicitacaoCredito> validadores;
 
 
     public CartaoService(CartaoRepository cartaoRepository,
                          CartaoMapper cartaoMapper,
                          ContaRepository contaRepository,
-                         GeradorDeCartaoUtil geradorDeCartaoUtil,
+                         GeradorDeCartaoUtil geradorDeCartaoUtil, CalculadoraLimiteCartao calculadoraLimiteCartao,
                          List<ValidadorSolicitacaoCredito> validadores) {
         this.cartaoRepository = cartaoRepository;
         this.cartaoMapper = cartaoMapper;
         this.contaRepository = contaRepository;
         this.geradorDeCartaoUtil = geradorDeCartaoUtil;
+        this.calculadoraLimiteCartao = calculadoraLimiteCartao;
         this.validadores = validadores;
     }
 
@@ -57,15 +60,7 @@ public class CartaoService {
 
         Cartao cartao = cartaoMapper.toEntity(dados, conta);
 
-        String numeroGerado = geradorDeCartaoUtil.geraNumeroCartao();
-        String cvvGerado = geradorDeCartaoUtil.geraCvv();
-
-        cartao.setNumeroCartao(numeroGerado);
-        cartao.setCvv(cvvGerado);
-        cartao.setDataVencimento(LocalDate.now().plusYears(5));
-        cartao.setStatus(StatusCartao.CARTAO_ATIVO);
-
-        cartaoRepository.save(cartao);
+        finalizarCriacaoCartao(cartao);
 
         return new CartaoDebitoMostrarDadosResponse(cartao);
     }
@@ -79,19 +74,12 @@ public class CartaoService {
 
         Cartao cartao = cartaoMapper.toEntityCredito(dados, conta);
 
-        BigDecimal limite;
-        limite = conta.getSaldo().multiply(new BigDecimal(0.5));
-        String numeroGerado = geradorDeCartaoUtil.geraNumeroCartao();
-        String cvvGerado = geradorDeCartaoUtil.geraCvv();
+        BigDecimal limiteCartao = calculadoraLimiteCartao.limite(conta);
 
-        cartao.setNumeroCartao(numeroGerado);
-        cartao.setCvv(cvvGerado);
-        cartao.setLimiteCredito(limite);
+        cartao.setLimiteCredito(limiteCartao);
         cartao.setDiaVencimentoFatura(10);
-        cartao.setDataVencimento(LocalDate.now().plusYears(5));
-        cartao.setStatus(StatusCartao.CARTAO_ATIVO);
 
-        cartaoRepository.save(cartao);
+        finalizarCriacaoCartao(cartao);
 
         return cartaoMapper.toCreditoResponse(cartao);
     }
@@ -99,5 +87,19 @@ public class CartaoService {
     private Conta buscarContaPorId(Long id) {
         return contaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Conta com ID " + id + " não encontrada."));
+    }
+
+    private Cartao finalizarCriacaoCartao (Cartao cartao) {
+        String numeroGerado;
+        do {
+            numeroGerado = geradorDeCartaoUtil.geraNumeroCartao();
+        }while (cartaoRepository.existsByNumeroCartao(numeroGerado));
+
+        cartao.setStatus(StatusCartao.CARTAO_ATIVO);
+        cartao.setNumeroCartao(numeroGerado);
+        cartao.setDataVencimento(LocalDate.now().plusYears(5));
+        cartao.setCvv(geradorDeCartaoUtil.geraCvv());
+
+       return cartaoRepository.save(cartao);
     }
 }
