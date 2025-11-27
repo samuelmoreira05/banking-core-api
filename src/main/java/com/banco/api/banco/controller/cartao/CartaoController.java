@@ -10,10 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/cartoes")
@@ -41,5 +38,23 @@ public class CartaoController implements CartaoDocumentation {
             @RequestBody CartaoCreditoCriarDadosRequest dados){
         CartaoCreditoMostrarDadosResponse response = cartaoService.solicitaCartaoCredito(dados);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @DeleteMapping
+    @SecurityRequirement(name = "barer-token")
+    public ResponseEntity<Void> ativarCartao(
+            @PathVariable Long id
+    ){
+        cartaoService.ativarCartao(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @DeleteMapping
+    @SecurityRequirement(name = "barer-token")
+    public ResponseEntity<Void> bloquearCartao(
+            @PathVariable Long id
+    ){
+        cartaoService.bloqueiaCartao(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
