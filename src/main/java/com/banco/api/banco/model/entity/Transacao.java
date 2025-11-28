@@ -37,6 +37,8 @@ public class Transacao {
 
     private BigDecimal saldoAnterior;
 
+    private String descricao;
+
     public Transacao(Conta conta, TipoTransacao tipo, BigDecimal valor, BigDecimal saldoAnterior) {
         this.conta = conta;
         this.tipo = tipo;
