@@ -1,6 +1,7 @@
 package com.banco.api.banco.service;
 
 import com.banco.api.banco.controller.transacaoCartao.request.TransacaoCartaoEfetuarDadosRequest;
+import com.banco.api.banco.controller.transacaoCartao.response.TransacaoCartaoMostrarDadosResponse;
 import com.banco.api.banco.enums.StatusCartao;
 import com.banco.api.banco.enums.StatusConta;
 import com.banco.api.banco.enums.TipoCartao;
@@ -35,7 +36,7 @@ public class TransacaoCartaoService {
     }
 
     @Transactional
-    public void realizarTransacaoDebito(TransacaoCartaoEfetuarDadosRequest dados){
+    public TransacaoCartaoMostrarDadosResponse realizarTransacaoDebito(TransacaoCartaoEfetuarDadosRequest dados){
         Cartao cartao = buscaNumeroCartao(dados.numeroCartao());
 
         validarOperacaoDebito(cartao, dados.senha());
@@ -47,7 +48,9 @@ public class TransacaoCartaoService {
 
         Transacao transacao = transacaoMapper.toEntityDebito(conta, dados.valor(), valorAntes, dados.descricao());
 
-        transacaoRepository.save(transacao);
+        transacao = transacaoRepository.save(transacao);
+
+        return transacaoMapper.toCartaoResponse(transacao);
     }
 
     private Cartao buscaNumeroCartao(String numeroCartao){
