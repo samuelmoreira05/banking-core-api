@@ -5,6 +5,7 @@ import com.banco.api.banco.controller.transacao.response.TransacaoMostrarDadosRe
 import com.banco.api.banco.controller.transacaoCartao.response.TransacaoCartaoMostrarDadosResponse;
 import com.banco.api.banco.enums.TipoTransacao;
 import com.banco.api.banco.model.entity.Conta;
+import com.banco.api.banco.model.entity.Fatura;
 import com.banco.api.banco.model.entity.Transacao;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,18 @@ public class TransacaoMapper {
                 .build();
 
         return transacao;
+    }
+
+    public Transacao toEntityCredito(Fatura fatura, BigDecimal valor, String descricao){
+        return Transacao.builder()
+                .conta(fatura.getCartao().getConta())
+                .fatura(fatura)
+                .valor(valor)
+                .tipo(TipoTransacao.CREDITO)
+                .descricao(descricao)
+                .dataTransacao(LocalDateTime.now())
+                .saldoAnterior(BigDecimal.ZERO)
+                .build();
     }
 
     public TransacaoCartaoMostrarDadosResponse toCartaoResponse(Transacao transacao) {

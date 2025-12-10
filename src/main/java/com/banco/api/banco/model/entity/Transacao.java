@@ -39,6 +39,10 @@ public class Transacao {
 
     private String descricao;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fatura_id")
+    private Fatura fatura;
+
     public Transacao(Conta conta, TipoTransacao tipo, BigDecimal valor, BigDecimal saldoAnterior) {
         this.conta = conta;
         this.tipo = tipo;
