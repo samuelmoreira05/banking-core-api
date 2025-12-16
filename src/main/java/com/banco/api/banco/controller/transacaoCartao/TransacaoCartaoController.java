@@ -26,8 +26,18 @@ public class TransacaoCartaoController {
     @PostMapping("/debito")
     @SecurityRequirement(name = "barer-token")
     public ResponseEntity<TransacaoCartaoMostrarDadosResponse> transacaoCartaoDebito(
-            @Valid @RequestBody TransacaoCartaoEfetuarDadosRequest dados){
+            @Valid
+            @RequestBody TransacaoCartaoEfetuarDadosRequest dados){
         TransacaoCartaoMostrarDadosResponse response = transacaoCartaoService.realizarTransacaoDebito(dados);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/credito")
+    @SecurityRequirement(name = "barer-token")
+    public ResponseEntity<TransacaoCartaoMostrarDadosResponse> transacaoCartaoCredito(
+            @Valid
+            @RequestBody TransacaoCartaoEfetuarDadosRequest dados){
+        TransacaoCartaoMostrarDadosResponse response = transacaoCartaoService.realizarTransacaoCredito(dados);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
