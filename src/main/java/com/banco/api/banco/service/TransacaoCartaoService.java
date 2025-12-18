@@ -43,7 +43,7 @@ public class TransacaoCartaoService {
     public TransacaoCartaoMostrarDadosResponse realizarTransacaoDebito(TransacaoCartaoEfetuarDadosRequest dados){
         Cartao cartao = buscaNumeroCartao(dados.numeroCartao());
 
-        validarOperacaoDebito(cartao, dados.senha());
+        validarDadosCartao(cartao, dados.senha(), TipoCartao.DEBITO);
 
         Conta conta = cartao.getConta();
         BigDecimal valorAntes = conta.getSaldo();
@@ -58,17 +58,14 @@ public class TransacaoCartaoService {
     }
 
     @Transactional
-    public TransacaoCartaoMostrarDadosResponse realizarTransacaoCredito(TransacaoCartaoEfetuarDadosRequest dados){
+    public TransacaoCartaoMostrarDadosResponse realizarTransacaoCredito(TransacaoCartaoEfetuarDadosRequest dados) {
         Cartao cartao = buscaNumeroCartao(dados.numeroCartao());
-        validarOperacaoCredito(cartao, dados.senha());
+
+        validarDadosCartao(cartao, dados.senha(), TipoCartao.CREDITO);
+
         Fatura fatura = buscaOuCriaFatura(cartao);
 
-        BigDecimal limiteConsumido = fatura.getValorTotal();
-        BigDecimal limiteDisponivel = cartao.getLimiteCredito().subtract(limiteConsumido);
-
-        if (dados.valor().compareTo(limiteDisponivel) > 0) {
-            throw new RegraDeNegocioException("Limite insuficiente. Disponível: " + limiteDisponivel);
-        }
+        validarLimiteDisponivel(cartao, fatura, dados.valor());
 
         fatura.setValorTotal(fatura.getValorTotal().add(dados.valor()));
         faturaRepository.save(fatura);
@@ -84,36 +81,30 @@ public class TransacaoCartaoService {
                 .orElseThrow(() -> new EntityNotFoundException("Cartão nao encontrado"));
     }
 
-    private void validarOperacaoDebito(Cartao cartao, String senhaDigitada) {
+    private void validarDadosCartao(Cartao cartao, String senhaDigitada, TipoCartao tipoEsperado) {
         if (cartao.getStatus() != StatusCartao.CARTAO_ATIVO) {
             throw new RegraDeNegocioException("O cartão precisa estar ativo.");
         }
         if (!passwordEncoder.matches(senhaDigitada, cartao.getSenha())) {
             throw new RegraDeNegocioException("Senha incorreta.");
         }
-        if (cartao.getTipoCartao() != TipoCartao.DEBITO) {
-            throw new RegraDeNegocioException("Cartão inválido para débito.");
-        }
         if (cartao.getConta().getStatus() != StatusConta.ATIVO) {
             throw new RegraDeNegocioException("Conta vinculada inativa.");
         }
-    }
-
-    private void validarOperacaoCredito(Cartao cartao, String senhaDigitada) {
-        if (cartao.getStatus() != StatusCartao.CARTAO_ATIVO) {
-            throw new RegraDeNegocioException("O cartão precisa estar ativo.");
-        }
-        if (!passwordEncoder.matches(senhaDigitada, cartao.getSenha())) {
-            throw new RegraDeNegocioException("Senha incorreta.");
-        }
-        if (cartao.getTipoCartao() != TipoCartao.CREDITO) {
-            throw new RegraDeNegocioException("Cartão inválido para credito.");
-        }
-        if (cartao.getConta().getStatus() != StatusConta.ATIVO) {
-            throw new RegraDeNegocioException("Conta vinculada inativa.");
+        if (cartao.getTipoCartao() != tipoEsperado) {
+            throw new RegraDeNegocioException("Tipo de cartão inválido para operação de " + tipoEsperado);
         }
     }
 
+    private void validarLimiteDisponivel(Cartao cartao, Fatura fatura, BigDecimal valorCompra) {
+        BigDecimal limiteConsumido = fatura.getValorTotal();
+        BigDecimal limiteDisponivel = cartao.getLimiteCredito().subtract(limiteConsumido);
+
+        if (valorCompra.compareTo(limiteDisponivel) > 0) {
+            throw new RegraDeNegocioException("Limite insuficiente. Disponível: " + limiteDisponivel);
+        }
+    }
+    
     private Fatura buscaOuCriaFatura(Cartao cartao){
         return faturaRepository.findByCartaoAndStatus(cartao, StatusFatura.ABERTA)
                 .orElseGet(() -> criarNovaFatura(cartao));
