@@ -104,7 +104,7 @@ public class TransacaoCartaoService {
             throw new RegraDeNegocioException("Limite insuficiente. Disponível: " + limiteDisponivel);
         }
     }
-    
+
     private Fatura buscaOuCriaFatura(Cartao cartao){
         return faturaRepository.findByCartaoAndStatus(cartao, StatusFatura.ABERTA)
                 .orElseGet(() -> criarNovaFatura(cartao));

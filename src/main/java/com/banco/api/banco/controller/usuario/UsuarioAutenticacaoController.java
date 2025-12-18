@@ -1,5 +1,6 @@
 package com.banco.api.banco.controller.usuario;
 
+import com.banco.api.banco.controller.documentation.UsuarioDocumentation;
 import com.banco.api.banco.controller.usuario.request.UsuarioAutenticacaoDadosRequest;
 import com.banco.api.banco.controller.usuario.response.GeraTokenResponse;
 import com.banco.api.banco.infra.security.TokenSecurity;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("api/autenticar")
-public class UsuarioAutenticacaoController {
+public class UsuarioAutenticacaoController implements UsuarioDocumentation {
 
     private final AuthenticationManager manager;
     private final TokenSecurity security;
@@ -25,10 +26,12 @@ public class UsuarioAutenticacaoController {
         this.security = security;
     }
 
+    @Override // Boa prática
     @PostMapping("/login")
-    public ResponseEntity loginUsuario(
+    public ResponseEntity<GeraTokenResponse> loginUsuario(
             @Valid
-            @RequestBody  UsuarioAutenticacaoDadosRequest dados){
+            @RequestBody UsuarioAutenticacaoDadosRequest dados){
+
         var token = new UsernamePasswordAuthenticationToken(dados.login(), dados.senha());
         var authentication = manager.authenticate(token);
         var jwtToken = security.geraToken((Usuario) authentication.getPrincipal());
