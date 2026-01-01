@@ -1,6 +1,6 @@
 package com.banco.api.banco.controller.transacao.transacaojdbc;
 
-import com.banco.api.banco.service.BatchTesteJDBC.TransacaoBatchService;
+import com.banco.api.banco.service.batchTesteJDBC.TransacaoBatchService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

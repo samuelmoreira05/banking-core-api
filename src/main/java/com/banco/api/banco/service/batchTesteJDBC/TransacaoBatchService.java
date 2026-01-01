@@ -1,4 +1,4 @@
-package com.banco.api.banco.service.BatchTesteJDBC;
+package com.banco.api.banco.service.batchTesteJDBC;
 
 import com.banco.api.banco.enums.TipoTransacao;
 import com.banco.api.banco.model.entity.Conta;

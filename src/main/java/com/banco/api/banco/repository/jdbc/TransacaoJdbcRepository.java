@@ -1,11 +1,13 @@
 package com.banco.api.banco.repository.jdbc;
 
 import com.banco.api.banco.model.entity.Transacao;
+import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.List;
 
+@Repository
 public class TransacaoJdbcRepository {
 
     private final DataSource dataSource;
