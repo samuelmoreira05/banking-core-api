@@ -15,7 +15,7 @@ public class FaturaAgendadorScheduler {
         this.batchClient = batchClient;
     }
 
-    @Scheduled(cron = "{app.scheduler.faturas-cron}", zone = "America/Sao_Paulo")
+    @Scheduled(cron = "${app.scheduler.faturas-cron}", zone = "America/Sao_Paulo")
     public void agendarFechamentoFaturas() {
         System.out.println("Iniciando scheduler: Solicitando fechamento de fatura");
 

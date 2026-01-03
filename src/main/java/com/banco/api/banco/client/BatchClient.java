@@ -12,10 +12,6 @@ public class BatchClient {
 
     private final RestClient restClient;
 
-    public BatchClient(RestClient restClient) {
-        this.restClient = restClient;
-    }
-
     public BatchClient(@Value("${app.batch.url}") String batchUrl) {
         this.restClient = RestClient.builder()
                 .baseUrl(batchUrl)
