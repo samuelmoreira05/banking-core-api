@@ -26,19 +26,17 @@ import java.util.List;
 public class TransacaoCartaoService {
 
     private final CartaoService cartaoService;
-    private final TransacaoRepository transacaoRepository;
+    private final FaturaService faturaService;
     private final TransacaoMapper transacaoMapper;
-    private final FaturaRepository faturaRepository;
-    private final FaturaMapper faturaMapper;
     private final List<ValidadorDadosCartao> validarDadosCartao;
+    private final TransacaoService transacaoService;
 
-    public TransacaoCartaoService(CartaoService cartaoService, TransacaoRepository transacaoRepository, TransacaoMapper transacaoMapper, FaturaRepository faturaRepository, FaturaMapper faturaMapper, List<ValidadorDadosCartao> validarDadosCartao) {
+    public TransacaoCartaoService(CartaoService cartaoService, FaturaService faturaService, TransacaoMapper transacaoMapper, List<ValidadorDadosCartao> validarDadosCartao, TransacaoService transacaoService) {
         this.cartaoService = cartaoService;
-        this.transacaoRepository = transacaoRepository;
+        this.faturaService = faturaService;
         this.transacaoMapper = transacaoMapper;
-        this.faturaRepository = faturaRepository;
-        this.faturaMapper = faturaMapper;
         this.validarDadosCartao = validarDadosCartao;
+        this.transacaoService = transacaoService;
     }
 
     @Transactional
@@ -54,7 +52,7 @@ public class TransacaoCartaoService {
 
         Transacao transacao = transacaoMapper.toEntityDebito(conta, dados.valor(), valorAntes, dados.descricao());
 
-        transacao = transacaoRepository.save(transacao);
+        transacao = transacaoService.salvar(transacao);
 
         return transacaoMapper.toCartaoResponse(transacao);
     }
@@ -65,36 +63,14 @@ public class TransacaoCartaoService {
 
         validarDadosCartao.forEach(v -> v.validarDados(cartao, dados.senha(),TipoCartao.CREDITO));
 
-        Fatura fatura = buscaOuCriaFatura(cartao);
+        Fatura faturaAtualizada = faturaService.processarCompraCredito(cartao, dados.valor());
 
-        validarLimiteDisponivel(cartao, fatura, dados.valor());
-
-        fatura.setValorTotal(fatura.getValorTotal().add(dados.valor()));
-        faturaRepository.save(fatura);
-
-        Transacao transacao = transacaoMapper.toEntityCredito(fatura, dados.valor(), dados.descricao());
-        transacao = transacaoRepository.save(transacao);
+        Transacao transacao = transacaoMapper.toEntityCredito(faturaAtualizada, dados.valor(), dados.descricao());
+        transacao = transacaoService.salvar(transacao);
 
         return transacaoMapper.toCartaoResponse(transacao);
     }
 
-    private void validarLimiteDisponivel(Cartao cartao, Fatura fatura, BigDecimal valorCompra) {
-        BigDecimal limiteConsumido = fatura.getValorTotal();
-        BigDecimal limiteDisponivel = cartao.getLimiteCredito().subtract(limiteConsumido);
 
-        if (valorCompra.compareTo(limiteDisponivel) > 0) {
-            throw new RegraDeNegocioException("Limite insuficiente. Disponível: " + limiteDisponivel);
-        }
-    }
 
-    private Fatura buscaOuCriaFatura(Cartao cartao){
-        return faturaRepository.findByCartaoAndStatus(cartao, StatusFatura.ABERTA)
-                .orElseGet(() -> criarNovaFatura(cartao));
-    }
-
-    private Fatura criarNovaFatura(Cartao cartao){
-        Fatura novaFatura = faturaMapper.toEntityFaturaInicial(cartao);
-
-        return faturaRepository.save(novaFatura);
-    }
 }

@@ -45,8 +45,13 @@ public class TransacaoService {
         return transacaoMapper.toResponse(transacao);
     }
 
-    private Transacao salvarTransacao(Conta conta, TransacaoEfetuarDadosRequest dados, BigDecimal saldoAnterior){
+    public Transacao salvarTransacao(Conta conta, TransacaoEfetuarDadosRequest dados, BigDecimal saldoAnterior){
         Transacao transacao = transacaoMapper.toEntity(conta, dados, saldoAnterior);
+        return repository.save(transacao);
+    }
+
+    @Transactional
+    public Transacao salvar(Transacao transacao) {
         return repository.save(transacao);
     }
 }
