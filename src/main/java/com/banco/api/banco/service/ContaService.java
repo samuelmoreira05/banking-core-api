@@ -37,7 +37,7 @@ public class ContaService {
     @Transactional
     public ContaMostrarDadosResponse criarConta(ContaCadastroDadosRequest dados) {
         Cliente cliente = clienteRepository.findById(dados.clienteId())
-                .orElseThrow(() -> new EntityNotFoundException("Cliente não foi encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Cliente não foi encontrado")); // TODO Deve ter essa validação vinda do clienteService
 
 
         Conta conta = contaMapper.toEntity(dados, cliente);
@@ -83,7 +83,7 @@ public class ContaService {
         conta.ativaConta();
     }
 
-    private Conta buscarContaPorId(Long id) {
+    public Conta buscarContaPorId(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Conta com ID " + id + " não encontrada."));
 

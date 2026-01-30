@@ -18,19 +18,19 @@ import java.math.BigDecimal;
 @Service
 public class TransacaoService {
 
+    private final ContaService contaService;
     private final TransacaoRepository repository;
-    private final ContaRepository contaRepository;
     private final TransacaoMapper transacaoMapper;
 
-    public TransacaoService(TransacaoRepository repository, ContaRepository contaRepository, TransacaoMapper transacaoMapper) {
+    public TransacaoService(TransacaoRepository repository, ContaService contaService, TransacaoMapper transacaoMapper) {
         this.repository = repository;
-        this.contaRepository = contaRepository;
+        this.contaService = contaService;
         this.transacaoMapper = transacaoMapper;
     }
 
     @Transactional
     public TransacaoMostrarDadosResponse efetuarTransacao(TransacaoEfetuarDadosRequest dados) {
-        Conta conta = buscarContaPorId(dados.contaId());
+        Conta conta = contaService.buscarContaPorId(dados.contaId());
 
         if(conta.getStatus() != StatusConta.ATIVO){
             throw new RegraDeNegocioException("Transacoes não são permitidas em contas com status: " + conta.getStatus());
@@ -43,11 +43,6 @@ public class TransacaoService {
         Transacao transacao = salvarTransacao(conta, dados, saldoAntes);
 
         return transacaoMapper.toResponse(transacao);
-    }
-
-    private Conta buscarContaPorId(Long id) {
-        return contaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Conta com ID " + id + " não encontrada."));
     }
 
     private Transacao salvarTransacao(Conta conta, TransacaoEfetuarDadosRequest dados, BigDecimal saldoAnterior){

@@ -6,14 +6,13 @@ import com.banco.api.banco.controller.cartao.response.CartaoCreditoMostrarDadosR
 import com.banco.api.banco.enums.StatusCartao;
 import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.enums.TipoCartao;
-import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.mapper.CartaoMapper;
 import com.banco.api.banco.model.entity.Cartao;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.CartaoRepository;
 import com.banco.api.banco.repository.ContaRepository;
-import com.banco.api.banco.service.validadores.cartao.ValidadorSolicitacaoCredito;
+import com.banco.api.banco.service.validadores.cartaoCredito.ValidadorSolicitacaoCredito;
 import com.banco.api.banco.util.GeradorDeCartaoUtil;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;

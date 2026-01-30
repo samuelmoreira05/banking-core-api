@@ -14,7 +14,7 @@ import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.CartaoRepository;
 import com.banco.api.banco.repository.ContaRepository;
 import com.banco.api.banco.service.calculadora.CalculadoraLimiteCartao;
-import com.banco.api.banco.service.validadores.cartao.ValidadorSolicitacaoCredito;
+import com.banco.api.banco.service.validadores.cartaoCredito.ValidadorSolicitacaoCredito;
 import com.banco.api.banco.util.GeradorDeCartaoUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -29,9 +29,9 @@ import java.util.List;
 public class CartaoService {
 
     private final CartaoRepository cartaoRepository;
+    private final ContaService contaService;
     private final CartaoMapper cartaoMapper;
     private final PasswordEncoder passwordEncoder;
-    private final ContaRepository contaRepository;
     private final GeradorDeCartaoUtil geradorDeCartaoUtil;
     private final CalculadoraLimiteCartao calculadoraLimiteCartao;
     private final List<ValidadorSolicitacaoCredito> validadores;
@@ -39,13 +39,13 @@ public class CartaoService {
 
     public CartaoService(CartaoRepository cartaoRepository,
                          CartaoMapper cartaoMapper, PasswordEncoder passwordEncoder,
-                         ContaRepository contaRepository,
+                         ContaRepository contaRepository, ContaService contaService,
                          GeradorDeCartaoUtil geradorDeCartaoUtil, CalculadoraLimiteCartao calculadoraLimiteCartao,
                          List<ValidadorSolicitacaoCredito> validadores) {
         this.cartaoRepository = cartaoRepository;
         this.cartaoMapper = cartaoMapper;
         this.passwordEncoder = passwordEncoder;
-        this.contaRepository = contaRepository;
+        this.contaService = contaService;
         this.geradorDeCartaoUtil = geradorDeCartaoUtil;
         this.calculadoraLimiteCartao = calculadoraLimiteCartao;
         this.validadores = validadores;
@@ -53,7 +53,7 @@ public class CartaoService {
 
     @Transactional
     public CartaoDebitoMostrarDadosResponse solicitaCartaoDebito(CartaoDebitoCriarDadosRequest dados) {
-        Conta conta = buscarContaPorId(dados.idConta());
+        Conta conta = contaService.buscarContaPorId(dados.idConta());
 
         Cliente cliente = conta.getCliente();
 
@@ -72,7 +72,7 @@ public class CartaoService {
 
     @Transactional
     public CartaoCreditoMostrarDadosResponse solicitaCartaoCredito(CartaoCreditoCriarDadosRequest dados){
-        Conta conta = buscarContaPorId(dados.idConta());
+        Conta conta = contaService.buscarContaPorId(dados.idConta());
         Cliente cliente = conta.getCliente();
 
         validadores.forEach(v -> v.validar(cliente, conta));
@@ -106,9 +106,9 @@ public class CartaoService {
         cartao.ativaCartao();
     }
 
-    private Conta buscarContaPorId(Long id) {
-        return contaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Conta com ID " + id + " não encontrada."));
+    public Cartao buscaNumeroCartao(String numeroCartao){
+        return cartaoRepository.findByNumeroCartao(numeroCartao)
+                .orElseThrow(() -> new EntityNotFoundException("Cartão nao encontrado"));
     }
 
     private Cartao buscarCartaoPorId(Long id) {
