@@ -1,4 +1,4 @@
-package com.banco.api.banco.service.validadores.cartao;
+package com.banco.api.banco.service.validadores.cartaoCredito;
 
 import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.infra.exception.RegraDeNegocioException;

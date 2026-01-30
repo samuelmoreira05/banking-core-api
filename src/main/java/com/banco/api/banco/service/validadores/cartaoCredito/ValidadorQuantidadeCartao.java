@@ -1,8 +1,7 @@
-package com.banco.api.banco.service.validadores.cartao;
+package com.banco.api.banco.service.validadores.cartaoCredito;
 
 import com.banco.api.banco.enums.TipoCartao;
 import com.banco.api.banco.infra.exception.RegraDeNegocioException;
-import com.banco.api.banco.model.entity.Cartao;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.CartaoRepository;
