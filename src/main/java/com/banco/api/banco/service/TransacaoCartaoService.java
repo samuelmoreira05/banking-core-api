@@ -38,9 +38,7 @@ public class TransacaoCartaoService {
 
     @Transactional
     public TransacaoCartaoMostrarDadosResponse realizarTransacaoDebito(TransacaoCartaoEfetuarDadosRequest dados){
-        Cartao cartao = cartaoService.buscaNumeroCartao(dados.numeroCartao());
-
-        validarDadosCartao.forEach(v -> v.validarDados(cartao, dados.senha(), TipoCartao.DEBITO));
+        Cartao cartao = buscarEValidarCartao(dados.numeroCartao(), dados.senha(), TipoCartao.DEBITO);
 
         Conta conta = cartao.getConta();
         BigDecimal valorAntes = conta.getSaldo();
@@ -56,18 +54,21 @@ public class TransacaoCartaoService {
 
     @Transactional
     public TransacaoCartaoMostrarDadosResponse realizarTransacaoCredito(TransacaoCartaoEfetuarDadosRequest dados) {
-        Cartao cartao = cartaoService.buscaNumeroCartao(dados.numeroCartao());
-
-        validarDadosCartao.forEach(v -> v.validarDados(cartao, dados.senha(),TipoCartao.CREDITO));
+        Cartao cartao = buscarEValidarCartao(dados.numeroCartao(), dados.senha(), TipoCartao.CREDITO);
 
         Fatura faturaAtualizada = faturaService.processarCompraCredito(cartao, dados.valor());
 
         Transacao transacao = transacaoMapper.toEntityCredito(faturaAtualizada, dados.valor(), dados.descricao());
+
         transacao = transacaoService.salvar(transacao);
 
         return transacaoMapper.toCartaoResponse(transacao);
     }
 
-
+    private Cartao buscarEValidarCartao(String numeroCartao, String senha, TipoCartao tipoTransacao) {
+        Cartao cartao = cartaoService.buscaNumeroCartao(numeroCartao);
+        validarDadosCartao.forEach(v -> v.validarDados(cartao, senha, tipoTransacao));
+        return cartao;
+    }
 
 }

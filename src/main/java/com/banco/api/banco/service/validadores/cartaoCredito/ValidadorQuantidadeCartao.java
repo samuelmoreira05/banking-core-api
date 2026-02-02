@@ -8,16 +8,16 @@ import com.banco.api.banco.repository.CartaoRepository;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ValidadorQuantidadeCartao implements ValidadorSolicitacaoCredito{
+public class ValidadorQuantidadeCartao implements ValidadorEmissaoCartao {
     private final CartaoRepository cartaoRepository;
 
     public ValidadorQuantidadeCartao(CartaoRepository cartaoRepository) {
         this.cartaoRepository = cartaoRepository;
     }
 
-    public void validar(Cliente cliente, Conta conta){
-        if (cartaoRepository.existsByContaAndTipoCartao(conta, TipoCartao.CREDITO)){
-            throw new RegraDeNegocioException("O cliente ja tem um cartão de credito");
+    public void validar(Cliente cliente, Conta conta, TipoCartao tipoCartao){
+        if (cartaoRepository.existsByContaAndTipoCartao(conta, tipoCartao)){
+            throw new RegraDeNegocioException("O cliente ja tem um cartão do tipo " + tipoCartao);
         }
     }
 }

@@ -6,6 +6,7 @@ import com.banco.api.banco.controller.cartao.response.CartaoCreditoMostrarDadosR
 import com.banco.api.banco.controller.cartao.response.CartaoDebitoMostrarDadosResponse;
 import com.banco.api.banco.enums.StatusCartao;
 import com.banco.api.banco.enums.StatusCliente;
+import com.banco.api.banco.enums.TipoCartao;
 import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.mapper.CartaoMapper;
 import com.banco.api.banco.model.entity.Cartao;
@@ -13,7 +14,7 @@ import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.CartaoRepository;
 import com.banco.api.banco.service.calculadora.CalculadoraLimiteCartao;
-import com.banco.api.banco.service.validadores.cartaoCredito.ValidadorSolicitacaoCredito;
+import com.banco.api.banco.service.validadores.cartaoCredito.ValidadorEmissaoCartao;
 import com.banco.api.banco.util.GeradorDeCartaoUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -33,7 +34,7 @@ public class CartaoService {
     private final PasswordEncoder passwordEncoder;
     private final GeradorDeCartaoUtil geradorDeCartaoUtil;
     private final CalculadoraLimiteCartao calculadoraLimiteCartao;
-    private final List<ValidadorSolicitacaoCredito> validadores;
+    private final List<ValidadorEmissaoCartao> validadores;
 
 
     public CartaoService(CartaoRepository cartaoRepository,
@@ -42,7 +43,7 @@ public class CartaoService {
                          ContaService contaService,
                          GeradorDeCartaoUtil geradorDeCartaoUtil,
                          CalculadoraLimiteCartao calculadoraLimiteCartao,
-                         List<ValidadorSolicitacaoCredito> validadores) {
+                         List<ValidadorEmissaoCartao> validadores) {
         this.cartaoRepository = cartaoRepository;
         this.cartaoMapper = cartaoMapper;
         this.passwordEncoder = passwordEncoder;
@@ -54,13 +55,7 @@ public class CartaoService {
 
     @Transactional
     public CartaoDebitoMostrarDadosResponse solicitaCartaoDebito(CartaoDebitoCriarDadosRequest dados) {
-        Conta conta = contaService.buscarContaPorId(dados.idConta());
-
-        Cliente cliente = conta.getCliente();
-
-        if (cliente.getStatus() != StatusCliente.ATIVO){
-            throw new RegraDeNegocioException("Para solicitar um cartao o cliente deve estar com Status de ativo, status atual: " + cliente.getStatus());
-        }
+        Conta conta = buscarEValidarConta(dados.idConta(), TipoCartao.DEBITO);
 
         var senhaHash = passwordEncoder.encode(dados.senha());
 
@@ -73,19 +68,14 @@ public class CartaoService {
 
     @Transactional
     public CartaoCreditoMostrarDadosResponse solicitaCartaoCredito(CartaoCreditoCriarDadosRequest dados){
-        Conta conta = contaService.buscarContaPorId(dados.idConta());
-        Cliente cliente = conta.getCliente();
-
-        validadores.forEach(v -> v.validar(cliente, conta));
+        Conta conta = buscarEValidarConta(dados.idConta(), TipoCartao.CREDITO);
 
         var senhaHash = passwordEncoder.encode(dados.senha());
 
         Cartao cartao = cartaoMapper.toEntityCredito(dados, conta, senhaHash);
 
         BigDecimal limiteCartao = calculadoraLimiteCartao.limite(conta);
-
         cartao.setLimiteCredito(limiteCartao);
-
         cartao.setDiaVencimentoFatura(10);
 
         cartao = finalizarCriacaoCartao(cartao);
@@ -96,15 +86,15 @@ public class CartaoService {
     @Transactional
     public void bloqueiaCartao(Long id) {
         Cartao cartao = buscarCartaoPorId(id);
-
         cartao.bloqueiaCartao();
+        cartaoRepository.save(cartao);
     }
 
     @Transactional
     public void ativarCartao(Long id) {
         Cartao cartao = buscarCartaoPorId(id);
-
         cartao.ativaCartao();
+        cartaoRepository.save(cartao);
     }
 
     public Cartao buscaNumeroCartao(String numeroCartao){
@@ -129,5 +119,13 @@ public class CartaoService {
         cartao.setCvv(geradorDeCartaoUtil.geraCvv());
 
        return cartaoRepository.save(cartao);
+    }
+
+    private Conta buscarEValidarConta(Long idConta, TipoCartao tipoCartao) {
+        Conta conta = contaService.buscarContaPorId(idConta);
+        Cliente cliente = conta.getCliente();
+
+        validadores.forEach(v -> v.validar(cliente, conta, tipoCartao));
+        return conta;
     }
 }

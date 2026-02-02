@@ -12,7 +12,7 @@ import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.CartaoRepository;
 import com.banco.api.banco.repository.ContaRepository;
-import com.banco.api.banco.service.validadores.cartaoCredito.ValidadorSolicitacaoCredito;
+import com.banco.api.banco.service.validadores.cartaoCredito.ValidadorEmissaoCartao;
 import com.banco.api.banco.util.GeradorDeCartaoUtil;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,7 @@ class CartaoServiceTest {
     @Mock private ContaRepository contaRepository;
     @Mock private CartaoMapper cartaoMapper;
     @Mock private GeradorDeCartaoUtil geradorDeCartaoUtil;
-    @Mock private List<ValidadorSolicitacaoCredito> validadores;
+    @Mock private List<ValidadorEmissaoCartao> validadores;
     @Mock private CartaoRepository cartaoRepository;
     @InjectMocks private CartaoService cartaoService;
 
