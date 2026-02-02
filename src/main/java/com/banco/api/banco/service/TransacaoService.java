@@ -32,27 +32,27 @@ public class TransacaoService {
     public TransacaoMostrarDadosResponse efetuarTransacao(TransacaoEfetuarDadosRequest dados) {
         Conta conta = contaService.buscarContaPorId(dados.contaId());
 
-        if(conta.getStatus() != StatusConta.ATIVO){
-            throw new RegraDeNegocioException("Transacoes não são permitidas em contas com status: " + conta.getStatus());
-        }
+        validarStatusConta(conta);
 
         BigDecimal saldoAntes = conta.getSaldo();
-
         conta.executarTransacao(dados.tipo(), dados.valor());
 
-        Transacao transacao = salvarTransacao(conta, dados, saldoAntes);
+        Transacao transacao = transacaoMapper.toEntity(conta, dados, saldoAntes);
+
+        transacao = salvar(transacao);
 
         return transacaoMapper.toResponse(transacao);
-    }
-
-    public Transacao salvarTransacao(Conta conta, TransacaoEfetuarDadosRequest dados, BigDecimal saldoAnterior){
-        Transacao transacao = transacaoMapper.toEntity(conta, dados, saldoAnterior);
-        return repository.save(transacao);
     }
 
     @Transactional
     public Transacao salvar(Transacao transacao) {
         return repository.save(transacao);
+    }
+
+    private void validarStatusConta(Conta conta) {
+        if (conta.getStatus() != StatusConta.ATIVO){
+            throw new RegraDeNegocioException("Transações não são permitidas em contas com status: " + conta.getStatus());
+        }
     }
 }
 

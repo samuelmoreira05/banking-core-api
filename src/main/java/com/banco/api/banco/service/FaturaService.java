@@ -25,7 +25,7 @@ public class FaturaService {
 
     @Transactional
     public Fatura processarCompraCredito(Cartao cartao, BigDecimal valorCompra) {
-        Fatura fatura = criaNovaFatura(cartao);
+        Fatura fatura = getFaturaAtual(cartao);
 
         validarLimiteDisponivel(cartao, fatura, valorCompra);
 
