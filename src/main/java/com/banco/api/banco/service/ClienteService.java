@@ -9,7 +9,6 @@ import com.banco.api.banco.enums.UserRole;
 import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.mapper.ClienteMapper;
 import com.banco.api.banco.model.entity.Cliente;
-import com.banco.api.banco.model.entity.Usuario;
 import com.banco.api.banco.repository.ClienteRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -18,7 +17,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.function.Consumer;
 
 @Service
@@ -68,7 +66,7 @@ public class ClienteService {
         Cliente cliente = buscarClientePorId(id);
 
         cliente.atualizaCliente(dados);
-        return new ClienteMostrarDadosResponse(cliente);
+        return clienteMapper.toClienteResponse(cliente);
     }
 
     @Transactional

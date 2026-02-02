@@ -3,7 +3,9 @@ package com.banco.api.banco.service;
 import com.banco.api.banco.controller.conta.request.ContaCadastroDadosRequest;
 import com.banco.api.banco.controller.conta.response.ContaListagemDadosResponse;
 import com.banco.api.banco.controller.conta.response.ContaMostrarDadosResponse;
+import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.enums.StatusConta;
+import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.mapper.ContaMapper;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
@@ -14,6 +16,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.function.Consumer;
 
 @Service
 public class ContaService {
@@ -39,12 +44,7 @@ public class ContaService {
         Conta conta = contaMapper.toEntity(dados, cliente);
 
         conta.setAgencia(geradorDeContaUtil.gerarAgencia());
-
-        String numeroConta;
-        do {
-            numeroConta = geradorDeContaUtil.gerarNumeroConta();
-        }while (repository.existsByNumeroConta(numeroConta));
-        conta.setNumeroConta(numeroConta);
+        conta.setNumeroConta(gerarNumeroContaUnico());
 
         conta.setStatus(StatusConta.ATIVO);
 
@@ -60,28 +60,40 @@ public class ContaService {
 
     @Transactional
     public void encerraConta (Long id){
-        Conta conta = buscarContaPorId(id);
-
+        executarAcaoConta(id, conta -> {
+            if (conta.getSaldo().compareTo(BigDecimal.ZERO) != 0) {
+                throw new RegraDeNegocioException("Conta nao pode ser encerrada pois possui saldo pendente");
+            }
             conta.encerraConta();
+        });
     }
 
     @Transactional
     public void suspendeConta(Long id){
-        Conta conta = buscarContaPorId(id);
-
-        conta.suspendeConta();
+        executarAcaoConta(id, Conta::suspendeConta);
     }
 
     @Transactional
     public void  ativaConta(Long id){
-        Conta conta = buscarContaPorId(id);
+        executarAcaoConta(id, Conta::ativaConta);
+    }
 
-        conta.ativaConta();
+    private void executarAcaoConta(Long id, java.util.function.Consumer<Conta> acao) {
+        Conta conta = buscarContaPorId(id);
+        acao.accept(conta);
     }
 
     public Conta buscarContaPorId(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Conta com ID " + id + " não encontrada."));
 
+    }
+
+    private String gerarNumeroContaUnico() {
+        String numeroConta;
+        do {
+            numeroConta = geradorDeContaUtil.gerarNumeroConta();
+        }while (repository.existsByNumeroConta(numeroConta));
+        return numeroConta;
     }
 }

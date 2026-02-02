@@ -5,9 +5,7 @@ import com.banco.api.banco.controller.cartao.request.CartaoDebitoCriarDadosReque
 import com.banco.api.banco.controller.cartao.response.CartaoCreditoMostrarDadosResponse;
 import com.banco.api.banco.controller.cartao.response.CartaoDebitoMostrarDadosResponse;
 import com.banco.api.banco.enums.StatusCartao;
-import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.enums.TipoCartao;
-import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.mapper.CartaoMapper;
 import com.banco.api.banco.model.entity.Cartao;
 import com.banco.api.banco.model.entity.Cliente;
