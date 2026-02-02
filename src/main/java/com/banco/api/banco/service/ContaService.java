@@ -20,25 +20,23 @@ import org.springframework.stereotype.Service;
 public class ContaService {
 
     private final ContaRepository repository;
-    private final ClienteRepository clienteRepository;
     private final ContaMapper contaMapper;
+    private final ClienteService clienteService;
     private final GeradorDeContaUtil geradorDeContaUtil;
 
     public ContaService(ContaRepository repository,
                         ClienteRepository clienteRepository,
-                        ContaMapper contaMapper,
+                        ContaMapper contaMapper, ClienteService clienteService,
                         GeradorDeContaUtil geradorDeContaUtil) {
         this.repository = repository;
-        this.clienteRepository = clienteRepository;
         this.contaMapper = contaMapper;
+        this.clienteService = clienteService;
         this.geradorDeContaUtil = geradorDeContaUtil;
     }
 
     @Transactional
     public ContaMostrarDadosResponse criarConta(ContaCadastroDadosRequest dados) {
-        Cliente cliente = clienteRepository.findById(dados.clienteId())
-                .orElseThrow(() -> new EntityNotFoundException("Cliente não foi encontrado")); // TODO Deve ter essa validação vinda do clienteService
-
+        Cliente cliente = clienteService.buscarClientePorId(dados.clienteId());
 
         Conta conta = contaMapper.toEntity(dados, cliente);
 

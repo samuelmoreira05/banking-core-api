@@ -100,7 +100,7 @@ public class ClienteService {
         cliente.ativar();
     }
 
-    protected Cliente buscarClientePorId(Long id){
+    public Cliente buscarClientePorId(Long id){
         return repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cliente de ID" + id + "não encontrado"));
     }
