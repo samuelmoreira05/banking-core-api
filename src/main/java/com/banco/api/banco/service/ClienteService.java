@@ -51,7 +51,7 @@ public class ClienteService {
         cliente.setStatus(StatusCliente.ATIVO);
 
         repository.save(cliente);
-        return new ClienteMostrarDadosResponse(cliente);
+        return clienteMapper.toClienteResponse(cliente);
     }
 
     public Page<ClienteListagemDadosResponse> listaCliente(Pageable pageable){
@@ -60,8 +60,7 @@ public class ClienteService {
 
     @Transactional
     public ClienteMostrarDadosResponse atualizarCliente (Long id, ClienteAtualizarDadosRequest dados){
-        Cliente cliente = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado na base de dados!"));
+        Cliente cliente = buscarClientePorId(id);
 
         cliente.atualizaCliente(dados);
         return new ClienteMostrarDadosResponse(cliente);

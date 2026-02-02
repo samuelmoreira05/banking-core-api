@@ -1,6 +1,7 @@
 package com.banco.api.banco.mapper;
 
 import com.banco.api.banco.controller.cliente.request.ClienteCadastroDadosRequest;
+import com.banco.api.banco.controller.cliente.response.ClienteMostrarDadosResponse;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Usuario;
 import lombok.AllArgsConstructor;
@@ -29,5 +30,16 @@ public class ClienteMapper {
                 .build();
 
         return cliente;
+    }
+
+    public ClienteMostrarDadosResponse toClienteResponse(Cliente cliente){
+        return new ClienteMostrarDadosResponse(
+                cliente.getId(),
+                cliente.getNome(),
+                cliente.getEndereco(),
+                cliente.getEmail(),
+                cliente.getTelefone(),
+                cliente.getStatus()
+        );
     }
 }

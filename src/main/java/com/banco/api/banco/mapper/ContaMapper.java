@@ -1,6 +1,7 @@
 package com.banco.api.banco.mapper;
 
 import com.banco.api.banco.controller.conta.request.ContaCadastroDadosRequest;
+import com.banco.api.banco.controller.conta.response.ContaMostrarDadosResponse;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import lombok.AllArgsConstructor;
@@ -19,5 +20,18 @@ public class ContaMapper {
                 .build();
 
         return conta;
+    }
+
+    public ContaMostrarDadosResponse toContaResponse(Conta conta) {
+        return new ContaMostrarDadosResponse(
+                conta.getNumeroConta(),
+                conta.getTipoConta(),
+                conta.getAgencia(),
+                conta.getSaldo(),
+                conta.getStatus(),
+                conta.getDataCriacao(),
+                conta.getCliente().getId(),
+                conta.getCliente().getNome()
+        );
     }
 }

@@ -52,7 +52,7 @@ public class ContaService {
 
         repository.save(conta);
 
-        return new ContaMostrarDadosResponse(conta);
+        return contaMapper.toContaResponse(conta);
     }
 
     public Page<ContaListagemDadosResponse> listarConta(Pageable pageable) {
