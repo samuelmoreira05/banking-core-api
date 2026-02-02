@@ -1,12 +1,15 @@
 package com.banco.api.banco.mapper;
 
 import com.banco.api.banco.controller.cliente.request.ClienteCadastroDadosRequest;
+import com.banco.api.banco.controller.cliente.response.ClienteListagemDadosResponse;
 import com.banco.api.banco.controller.cliente.response.ClienteMostrarDadosResponse;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Usuario;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.awt.print.Pageable;
 
 @Component
 @Slf4j
@@ -41,5 +44,9 @@ public class ClienteMapper {
                 cliente.getTelefone(),
                 cliente.getStatus()
         );
+    }
+
+    public ClienteListagemDadosResponse toClienteListagemResponse(Cliente cliente) {
+        return new ClienteListagemDadosResponse(cliente);
     }
 }

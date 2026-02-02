@@ -9,6 +9,7 @@ import com.banco.api.banco.enums.UserRole;
 import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.mapper.ClienteMapper;
 import com.banco.api.banco.model.entity.Cliente;
+import com.banco.api.banco.model.entity.Usuario;
 import com.banco.api.banco.repository.ClienteRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -18,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @Service
 public class ClienteService {
@@ -36,17 +38,17 @@ public class ClienteService {
 
     @Transactional
     public ClienteMostrarDadosResponse cadastraCliente(ClienteCadastroDadosRequest dados) {
-        if (repository.existsByCpf(dados.cpf()) || repository.existsByEmail(dados.email())){
-            throw new RegraDeNegocioException("Esse CPF ou Email já existe na base de dados!");
-        }
+        validarDuplicidade(dados);
 
-        var senhaHash = passwordEncoder.encode(dados.senha());
-
-        Cliente cliente = clienteMapper.toEntity(dados, senhaHash);
+        Cliente cliente = clienteMapper.toEntity(dados, null);
 
         if (cliente.getIdade() < 18){
             throw new RegraDeNegocioException("Não é possivel abrir uma conta sendo menor de 18 anos");
         }
+
+        var senhaHash = passwordEncoder.encode(dados.senha());
+
+        cliente.getUsuario().setSenha(senhaHash);
 
         cliente.getUsuario().setRole(UserRole.USER);
         cliente.setStatus(StatusCliente.ATIVO);
@@ -56,7 +58,9 @@ public class ClienteService {
     }
 
     public Page<ClienteListagemDadosResponse> listaCliente(Pageable pageable){
-        return repository.findAll(pageable).map(ClienteListagemDadosResponse::new);
+        Page<Cliente> paginaDeClientes = repository.findAll(pageable);
+
+        return paginaDeClientes.map(clienteMapper::toClienteListagemResponse);
     }
 
     @Transactional
@@ -69,39 +73,36 @@ public class ClienteService {
 
     @Transactional
     public void bloquear (Long id) {
-        Cliente cliente = buscarClientePorId(id);
-
-        if (cliente.getStatus() == StatusCliente.BLOQUEADO){
-            throw new RegraDeNegocioException("O cliente ja se encontra bloqueado");
-        }
-
-        cliente.bloquear();
+        alterarStatus(id, StatusCliente.BLOQUEADO, "O cliente ja se encontra bloqueado", Cliente::bloquear);
     }
 
     @Transactional
     public void inadimplencia(Long id) {
-        Cliente cliente = buscarClientePorId(id);
-
-        if (cliente.getStatus() == StatusCliente.INADIMPLENTE){
-            throw new RegraDeNegocioException("O cliente ja se encontra inadimplente");
-        }
-        
-        cliente.inadimplencia();
+        alterarStatus(id, StatusCliente.INADIMPLENTE, "O cliente ja se encontra inadimplente", Cliente::inadimplencia);
     }
 
     @Transactional
     public void ativaCliente(Long id){
+        alterarStatus(id, StatusCliente.ATIVO, "O cliente ja se encontra ativo", Cliente::ativar);
+    }
+
+    private void alterarStatus(Long id, StatusCliente statusImpeditivo, String mensagemErro, Consumer<Cliente> acao) {
         Cliente cliente = buscarClientePorId(id);
 
-        if (cliente.getStatus() == StatusCliente.ATIVO){
-            throw new RegraDeNegocioException("O cliente ja esta ativo no sistema");
+        if (cliente.getStatus() == statusImpeditivo){
+            throw new RegraDeNegocioException(mensagemErro);
         }
-
-        cliente.ativar();
+        acao.accept(cliente);
     }
 
     public Cliente buscarClientePorId(Long id){
         return repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cliente de ID" + id + "não encontrado"));
+    }
+
+    public void validarDuplicidade(ClienteCadastroDadosRequest dados) {
+        if (repository.existsByCpf(dados.cpf()) || repository.existsByEmail(dados.email())){
+            throw new RegraDeNegocioException("Esse CPF ou Email já existe na base de dados!");
+        }
     }
 }
