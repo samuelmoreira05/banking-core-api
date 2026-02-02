@@ -9,7 +9,6 @@ import com.banco.api.banco.enums.UserRole;
 import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.mapper.ClienteMapper;
 import com.banco.api.banco.model.entity.Cliente;
-import com.banco.api.banco.model.entity.Usuario;
 import com.banco.api.banco.repository.ClienteRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -27,7 +26,9 @@ public class ClienteService {
     private final PasswordEncoder passwordEncoder;
     private final ClienteMapper clienteMapper;
 
-    public ClienteService(ClienteRepository repository, PasswordEncoder passwordEncoder, ClienteMapper clienteMapper) {
+    public ClienteService(ClienteRepository repository,
+                          PasswordEncoder passwordEncoder,
+                          ClienteMapper clienteMapper) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.clienteMapper = clienteMapper;

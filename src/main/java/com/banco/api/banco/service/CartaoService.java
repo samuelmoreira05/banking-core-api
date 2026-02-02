@@ -12,7 +12,6 @@ import com.banco.api.banco.model.entity.Cartao;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.CartaoRepository;
-import com.banco.api.banco.repository.ContaRepository;
 import com.banco.api.banco.service.calculadora.CalculadoraLimiteCartao;
 import com.banco.api.banco.service.validadores.cartaoCredito.ValidadorSolicitacaoCredito;
 import com.banco.api.banco.util.GeradorDeCartaoUtil;
@@ -38,9 +37,11 @@ public class CartaoService {
 
 
     public CartaoService(CartaoRepository cartaoRepository,
-                         CartaoMapper cartaoMapper, PasswordEncoder passwordEncoder,
-                         ContaRepository contaRepository, ContaService contaService,
-                         GeradorDeCartaoUtil geradorDeCartaoUtil, CalculadoraLimiteCartao calculadoraLimiteCartao,
+                         CartaoMapper cartaoMapper,
+                         PasswordEncoder passwordEncoder,
+                         ContaService contaService,
+                         GeradorDeCartaoUtil geradorDeCartaoUtil,
+                         CalculadoraLimiteCartao calculadoraLimiteCartao,
                          List<ValidadorSolicitacaoCredito> validadores) {
         this.cartaoRepository = cartaoRepository;
         this.cartaoMapper = cartaoMapper;

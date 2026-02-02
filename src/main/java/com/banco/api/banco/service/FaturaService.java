@@ -17,7 +17,8 @@ public class FaturaService {
     private final FaturaRepository faturaRepository;
     private final FaturaMapper faturaMapper;
 
-    public FaturaService(FaturaRepository faturaRepository, FaturaMapper faturaMapper) {
+    public FaturaService(FaturaRepository faturaRepository,
+                         FaturaMapper faturaMapper) {
         this.faturaRepository = faturaRepository;
         this.faturaMapper = faturaMapper;
     }

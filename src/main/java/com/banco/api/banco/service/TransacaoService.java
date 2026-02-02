@@ -7,9 +7,7 @@ import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.mapper.TransacaoMapper;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.model.entity.Transacao;
-import com.banco.api.banco.repository.ContaRepository;
 import com.banco.api.banco.repository.TransacaoRepository;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +20,9 @@ public class TransacaoService {
     private final TransacaoRepository repository;
     private final TransacaoMapper transacaoMapper;
 
-    public TransacaoService(TransacaoRepository repository, ContaService contaService, TransacaoMapper transacaoMapper) {
+    public TransacaoService(TransacaoRepository repository,
+                            ContaService contaService,
+                            TransacaoMapper transacaoMapper) {
         this.repository = repository;
         this.contaService = contaService;
         this.transacaoMapper = transacaoMapper;

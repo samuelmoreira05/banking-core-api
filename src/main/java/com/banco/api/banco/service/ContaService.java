@@ -7,7 +7,6 @@ import com.banco.api.banco.enums.StatusConta;
 import com.banco.api.banco.mapper.ContaMapper;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
-import com.banco.api.banco.repository.ClienteRepository;
 import com.banco.api.banco.repository.ContaRepository;
 import com.banco.api.banco.util.GeradorDeContaUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,7 +24,6 @@ public class ContaService {
     private final GeradorDeContaUtil geradorDeContaUtil;
 
     public ContaService(ContaRepository repository,
-                        ClienteRepository clienteRepository,
                         ContaMapper contaMapper, ClienteService clienteService,
                         GeradorDeContaUtil geradorDeContaUtil) {
         this.repository = repository;
