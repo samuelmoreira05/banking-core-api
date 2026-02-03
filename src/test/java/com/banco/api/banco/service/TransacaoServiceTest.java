@@ -2,24 +2,21 @@ package com.banco.api.banco.service;
 
 import com.banco.api.banco.controller.transacao.request.TransacaoEfetuarDadosRequest;
 import com.banco.api.banco.controller.transacao.response.TransacaoMostrarDadosResponse;
+import com.banco.api.banco.enums.StatusConta;
 import com.banco.api.banco.enums.TipoTransacao;
+import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.mapper.TransacaoMapper;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.model.entity.Transacao;
-import com.banco.api.banco.repository.ContaRepository;
 import com.banco.api.banco.repository.TransacaoRepository;
-import jakarta.persistence.EntityNotFoundException;
-import org.hibernate.query.sqm.EntityTypeException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.Optional;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,112 +25,87 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class TransacaoServiceTest {
 
-    @Mock private TransacaoRepository transacaoRepository;
-    @Mock private ContaRepository contaRepository;
-    @InjectMocks private TransacaoService transacaoService;
-    @Captor private ArgumentCaptor<Transacao>  transacaoCaptor;
-    @Mock private TransacaoMapper transacaoMapper;
+    @InjectMocks
+    private TransacaoService transacaoService;
+
+    @Mock
+    private ContaService contaService;
+
+    @Mock
+    private TransacaoRepository repository;
+
+    @Mock
+    private TransacaoMapper transacaoMapper;
 
     @Test
-    void transacaoEfetuadaDepositoComSucesso() {
-        Long idConta = 1L;
+    void deveEfetuarTransacaoComSucesso() {
+        Long contaId = 1L;
+        BigDecimal valor = BigDecimal.valueOf(100);
+
+        TransacaoEfetuarDadosRequest dados = new TransacaoEfetuarDadosRequest(contaId, TipoTransacao.DEPOSITO, valor);
 
         Conta conta = new Conta();
-        conta.setId(idConta);
-        conta.setSaldo(BigDecimal.valueOf(1000));
+        conta.setId(contaId);
+        conta.setSaldo(BigDecimal.ZERO);
+        conta.setStatus(StatusConta.ATIVO);
 
-        TransacaoEfetuarDadosRequest transacao = new TransacaoEfetuarDadosRequest(
-                idConta,
+        Transacao transacao = new Transacao();
+        transacao.setId(1L);
+        transacao.setValor(valor);
+        transacao.setTipo(TipoTransacao.DEPOSITO);
+
+        TransacaoMostrarDadosResponse responseEsperado = new TransacaoMostrarDadosResponse(
+                1L,
                 TipoTransacao.DEPOSITO,
-                BigDecimal.valueOf(100)
+                LocalDateTime.now(),
+                valor,
+                BigDecimal.ZERO,
+                BigDecimal.valueOf(100),
+                null
         );
 
-        when(contaRepository.findById(idConta)).thenReturn(Optional.of(conta));
-        when(transacaoRepository.save(any(Transacao.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(contaService.buscarContaPorId(contaId)).thenReturn(conta);
+        when(transacaoMapper.toEntity(eq(conta), eq(dados), any(BigDecimal.class))).thenReturn(transacao);
+        when(repository.save(transacao)).thenReturn(transacao);
+        when(transacaoMapper.toResponse(transacao)).thenReturn(responseEsperado);
 
-        when(transacaoMapper.toEntity(any(Conta.class), any(TransacaoEfetuarDadosRequest.class), any(BigDecimal.class)))
-                .thenAnswer(invocation -> {
-                    Conta c = invocation.getArgument(0);
-                    TransacaoEfetuarDadosRequest d = invocation.getArgument(1);
-                    BigDecimal s = invocation.getArgument(2);
-                    return new Transacao(c, d.tipo(), d.valor(), s);
-                });
+        var resultado = transacaoService.efetuarTransacao(dados);
 
-        TransacaoMostrarDadosResponse response = transacaoService.efetuarTransacao(transacao);
-
-        assertNotNull(response);
-        assertEquals(BigDecimal.valueOf(100), response.valor());
-        assertEquals(TipoTransacao.DEPOSITO, response.tipo());
-
-        verify(transacaoRepository).save(transacaoCaptor.capture());
-        Transacao transacaoSalva = transacaoCaptor.getValue();
-
-        assertEquals(BigDecimal.valueOf(1000), transacaoSalva.getSaldoAnterior());
-        assertEquals(BigDecimal.valueOf(100), transacaoSalva.getValor());
-        assertEquals(BigDecimal.valueOf(1100), conta.getSaldo());
+        assertNotNull(resultado);
+        verify(repository).save(transacao);
+        assertEquals(TipoTransacao.DEPOSITO, resultado.tipo());
+        assertEquals(valor, resultado.valor());
     }
 
     @Test
-    void transacaoEfetuadaSaqueComSucesso() {
-        var idConta = 1L;
+    void deveLancarExceptionAoEfetuarTransacaoEmContaInativa() {
+        Long contaId = 1L;
+
+        TransacaoEfetuarDadosRequest dados = new TransacaoEfetuarDadosRequest(contaId, TipoTransacao.SAQUE, BigDecimal.TEN);
 
         Conta conta = new Conta();
-        conta.setId(idConta);
-        conta.setSaldo(BigDecimal.valueOf(1000));
+        conta.setId(contaId);
+        conta.setStatus(StatusConta.SUSPENSA);
 
-        TransacaoEfetuarDadosRequest transacao = new TransacaoEfetuarDadosRequest(
-                idConta,
-                TipoTransacao.SAQUE,
-                BigDecimal.valueOf(100)
-        );
+        when(contaService.buscarContaPorId(contaId)).thenReturn(conta);
 
-        when(contaRepository.findById(idConta)).thenReturn(Optional.of(conta));
-        when(transacaoRepository.save(any(Transacao.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        assertThrows(RegraDeNegocioException.class, () -> transacaoService.efetuarTransacao(dados));
 
-        when(transacaoMapper.toEntity(any(Conta.class), any(TransacaoEfetuarDadosRequest.class), any(BigDecimal.class)))
-                .thenAnswer(invocation -> {
-                    Conta contaMapper = invocation.getArgument(0);
-                    TransacaoEfetuarDadosRequest transacaoMapper = invocation.getArgument(1);
-                    BigDecimal b = invocation.getArgument(2);
-                    return new Transacao(contaMapper, transacaoMapper.tipo(), transacaoMapper.valor(), b);
-                });
-
-        TransacaoMostrarDadosResponse response = transacaoService.efetuarTransacao(transacao);
-
-        assertNotNull(response);
-        assertEquals(BigDecimal.valueOf(100), response.valor());
-        assertEquals(TipoTransacao.SAQUE, response.tipo());
-
-        verify(transacaoRepository).save(transacaoCaptor.capture());
-        Transacao transacaoSalva = transacaoCaptor.getValue();
-
-        assertEquals(BigDecimal.valueOf(1000), transacaoSalva.getSaldoAnterior());
-        assertEquals(BigDecimal.valueOf(100), transacaoSalva.getValor());
-        assertEquals(BigDecimal.valueOf(900), conta.getSaldo());
+        verify(repository, never()).save(any());
     }
 
     @Test
-    void transacaoNaoEfetuadaSemIdDaConta() {
-        var idConta = 1L;
+    void deveSalvarTransacaoComSucesso() {
+        Transacao transacao = new Transacao();
+        transacao.setId(1L);
+        transacao.setValor(BigDecimal.TEN);
 
-        Conta conta = new Conta();
-        conta.setId(idConta);
-        conta.setSaldo(new BigDecimal(1000));
+        when(repository.save(transacao)).thenReturn(transacao);
 
-        TransacaoEfetuarDadosRequest dados = new TransacaoEfetuarDadosRequest(
-                idConta,
-                TipoTransacao.SAQUE,
-                 BigDecimal.valueOf(200)
-        );
+        Transacao resultado = transacaoService.salvar(transacao);
 
-        when(contaRepository.findById(idConta)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> {
-            transacaoService.efetuarTransacao(dados);
-        });
-
-        verify(transacaoRepository, never()).save(any(Transacao.class));
+        assertNotNull(resultado);
+        assertEquals(transacao.getId(), resultado.getId());
+        verify(repository).save(transacao);
     }
 }
