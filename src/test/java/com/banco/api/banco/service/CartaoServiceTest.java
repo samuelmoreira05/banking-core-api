@@ -3,29 +3,28 @@ package com.banco.api.banco.service;
 import com.banco.api.banco.controller.cartao.request.CartaoCreditoCriarDadosRequest;
 import com.banco.api.banco.controller.cartao.request.CartaoDebitoCriarDadosRequest;
 import com.banco.api.banco.controller.cartao.response.CartaoCreditoMostrarDadosResponse;
+import com.banco.api.banco.controller.cartao.response.CartaoDebitoMostrarDadosResponse;
 import com.banco.api.banco.enums.StatusCartao;
-import com.banco.api.banco.enums.StatusCliente;
 import com.banco.api.banco.enums.TipoCartao;
 import com.banco.api.banco.mapper.CartaoMapper;
 import com.banco.api.banco.model.entity.Cartao;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.CartaoRepository;
-import com.banco.api.banco.repository.ContaRepository;
+import com.banco.api.banco.service.calculadora.CalculadoraLimiteCartao;
 import com.banco.api.banco.service.validadores.cartaoCredito.ValidadorEmissaoCartao;
 import com.banco.api.banco.util.GeradorDeCartaoUtil;
 import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,136 +35,217 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CartaoServiceTest {
 
-    @Mock private ContaRepository contaRepository;
-    @Mock private CartaoMapper cartaoMapper;
-    @Mock private GeradorDeCartaoUtil geradorDeCartaoUtil;
-    @Mock private List<ValidadorEmissaoCartao> validadores;
-    @Mock private CartaoRepository cartaoRepository;
-    @InjectMocks private CartaoService cartaoService;
+    @Mock
+    private CartaoRepository cartaoRepository;
+    @Mock
+    private ContaService contaService;
+    @Mock
+    private CartaoMapper cartaoMapper;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+    @Mock
+    private GeradorDeCartaoUtil geradorDeCartaoUtil;
+    @Mock
+    private CalculadoraLimiteCartao calculadoraLimiteCartao;
+    @Mock
+    private ValidadorEmissaoCartao validador;
 
-    @Captor private ArgumentCaptor<Cartao> captor;
+    private CartaoService cartaoService;
+
+    @BeforeEach
+    void setUp() {
+        cartaoService = new CartaoService(
+                cartaoRepository,
+                cartaoMapper,
+                passwordEncoder,
+                contaService,
+                geradorDeCartaoUtil,
+                calculadoraLimiteCartao,
+                List.of(validador)
+        );
+    }
 
     @Test
-    void solicitacaoCartaoDebitoSucesso() {
-        var idConta = 1L;
-        var idCliente = 2L;
-
-        Cliente cliente = new Cliente();
-        cliente.setStatus(StatusCliente.ATIVO);
-        cliente.setId(idCliente);
+    void deveSolicitarCartaoDebitoComSucesso() {
+        Long idConta = 1L;
+        CartaoDebitoCriarDadosRequest request = new CartaoDebitoCriarDadosRequest(idConta, "123456");
 
         Conta conta = new Conta();
         conta.setId(idConta);
+        conta.setAgencia("0001");
+        conta.setNumeroConta("12345-6");
+
+        Cliente cliente = new Cliente();
+        cliente.setNome("Cliente Teste");
         conta.setCliente(cliente);
 
-        CartaoDebitoCriarDadosRequest dadosSolicitacao = new CartaoDebitoCriarDadosRequest(
-                conta.getId()
+        Cartao cartao = new Cartao();
+        cartao.setStatus(StatusCartao.CARTAO_ATIVO);
+
+        CartaoDebitoMostrarDadosResponse responseEsperado = new CartaoDebitoMostrarDadosResponse(
+                "Cliente Teste",
+                "0001",
+                "12345-6",
+                "1111222233334444",
+                "2030-01-01"
         );
 
-        when(contaRepository.findById(idConta)).thenReturn(Optional.of(conta));
-        when(cartaoMapper.toEntity(any(CartaoDebitoCriarDadosRequest.class), any(Conta.class)))
-                .thenReturn(Cartao.builder()
-                .conta(conta)
-                .tipoCartao(TipoCartao.DEBITO)
-                .build()
-        );
+        when(contaService.buscarContaPorId(idConta)).thenReturn(conta);
+        when(passwordEncoder.encode(request.senha())).thenReturn("senhaHash");
+        when(cartaoMapper.toEntity(request, conta, "senhaHash")).thenReturn(cartao);
         when(geradorDeCartaoUtil.geraNumeroCartao()).thenReturn("1111222233334444");
+        when(cartaoRepository.existsByNumeroCartao(anyString())).thenReturn(false);
         when(geradorDeCartaoUtil.geraCvv()).thenReturn("123");
-        when(cartaoRepository.save(any(Cartao.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(cartaoRepository.save(any(Cartao.class))).thenReturn(cartao);
+        when(cartaoMapper.toDebitoResponse(any(Cartao.class))).thenReturn(responseEsperado);
 
-        var response = cartaoService.solicitaCartaoDebito(dadosSolicitacao);
+        var resultado = cartaoService.solicitaCartaoDebito(request);
 
-        assertNotNull(response);
-        assertEquals("1111222233334444", response.numeroCartao());
+        assertNotNull(resultado);
 
-        verify(cartaoRepository).save(captor.capture());
-        Cartao cartaoSalvo = captor.getValue();
+        assertEquals("Cliente Teste", resultado.nomeTitular());
 
-        assertNotNull(cartaoSalvo);
-        assertEquals("1111222233334444", cartaoSalvo.getNumeroCartao());
-        assertEquals("123", cartaoSalvo.getCvv());
-        assertEquals(StatusCartao.CARTAO_ATIVO, cartaoSalvo.getStatus());
-        assertNotNull(cartaoSalvo.getDataVencimento());
-        assertEquals(conta, cartaoSalvo.getConta());
+        verify(validador).validar(cliente, conta, TipoCartao.DEBITO);
+        verify(cartaoRepository).save(cartao);
+        assertEquals(StatusCartao.CARTAO_ATIVO, cartao.getStatus());
+        assertNotNull(cartao.getDataVencimento());
     }
 
     @Test
-    void solicitacaoCartaoDebitoFalhaQuandoContaNaoEncontrada() {
-        var idConta = 1L;
-        CartaoDebitoCriarDadosRequest dadosSolicitacao = new CartaoDebitoCriarDadosRequest(idConta);
+    void deveSolicitarCartaoCreditoComSucesso() {
+        Long idConta = 1L;
 
-        when(contaRepository.findById(idConta)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> {
-            cartaoService.solicitaCartaoDebito(dadosSolicitacao);
-        });
-
-        verify(cartaoRepository, never()).save(any(Cartao.class));
-    }
-
-    @Test
-    void solicitaCartaoCreditoQuandoClienteElegivelEntaoCriaCartao() {
-        var idConta = 1L;
-        var idCliente = 2L;
-        var limiteEsperado = new BigDecimal("500.000");
-        var numeroCartaoEsperado = "4444555566667777";
-        var cvvEsperado = "321";
-        var dataVencimentoEsperada = LocalDate.now().plusYears(5);
-
-        Cliente cliente = new Cliente();
-        cliente.setId(idCliente);
-        cliente.setStatus(StatusCliente.ATIVO);
-        cliente.setDataNascimento(LocalDate.now().minusYears(25));
+        CartaoCreditoCriarDadosRequest request = new CartaoCreditoCriarDadosRequest(idConta, "123456");
 
         Conta conta = new Conta();
         conta.setId(idConta);
+        conta.setAgencia("0001");
+        conta.setNumeroConta("99999-9");
+        Cliente cliente = new Cliente();
+        cliente.setNome("Cliente Teste");
         conta.setCliente(cliente);
-        conta.setSaldo(new BigDecimal("1000.00"));
 
-        CartaoCreditoCriarDadosRequest dadosSolicitacao = new CartaoCreditoCriarDadosRequest(idConta);
-        Cartao cartaoBase = Cartao.builder().conta(conta).tipoCartao(TipoCartao.CREDITO).build();
-        CartaoCreditoMostrarDadosResponse mockResponse = new CartaoCreditoMostrarDadosResponse(
-                cliente.getNome(), conta.getAgencia(), conta.getNumeroConta(), numeroCartaoEsperado, dataVencimentoEsperada.format(DateTimeFormatter.ofPattern("MM/yy")), 10, limiteEsperado
+        Cartao cartao = new Cartao();
+        cartao.setId(10L); // ID arbitrário
+        cartao.setLimiteCredito(BigDecimal.valueOf(2000));
+        cartao.setDiaVencimentoFatura(10);
+        cartao.setStatus(StatusCartao.CARTAO_ATIVO);
+
+        CartaoCreditoMostrarDadosResponse responseEsperado = new CartaoCreditoMostrarDadosResponse(
+                "Cliente Teste",
+                "0001",
+                "99999-9",
+                "1111222233334444",
+                "2030-01-01",
+                10,
+                BigDecimal.valueOf(2000)
         );
 
-        when(contaRepository.findById(idConta)).thenReturn(Optional.of(conta));
+        when(contaService.buscarContaPorId(idConta)).thenReturn(conta);
+        when(passwordEncoder.encode(request.senha())).thenReturn("senhaHash");
+        when(cartaoMapper.toEntityCredito(request, conta, "senhaHash")).thenReturn(cartao);
+        when(calculadoraLimiteCartao.limite(conta)).thenReturn(BigDecimal.valueOf(2000));
+        when(geradorDeCartaoUtil.geraNumeroCartao()).thenReturn("1111222233334444");
+        when(cartaoRepository.existsByNumeroCartao(anyString())).thenReturn(false);
+        when(geradorDeCartaoUtil.geraCvv()).thenReturn("999");
 
-        when(cartaoMapper.toEntityCredito(dadosSolicitacao, conta)).thenReturn(cartaoBase);
-        when(geradorDeCartaoUtil.geraNumeroCartao()).thenReturn(numeroCartaoEsperado);
-        when(geradorDeCartaoUtil.geraCvv()).thenReturn(cvvEsperado);
-        when(cartaoRepository.save(any(Cartao.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(cartaoMapper.toCreditoResponse(any(Cartao.class))).thenReturn(mockResponse);
+        when(cartaoRepository.save(any(Cartao.class))).thenReturn(cartao);
 
-        CartaoCreditoMostrarDadosResponse response = cartaoService.solicitaCartaoCredito(dadosSolicitacao);
+        when(cartaoMapper.toCreditoResponse(any(Cartao.class))).thenReturn(responseEsperado);
 
-        assertNotNull(response);
-        assertEquals(mockResponse, response);
+        var resultado = cartaoService.solicitaCartaoCredito(request);
 
-        verify(cartaoRepository).save(captor.capture());
-        Cartao cartaoSalvo = captor.getValue();
+        assertNotNull(resultado);
+        assertEquals("Cliente Teste", resultado.nomeTitular());
+        assertEquals(BigDecimal.valueOf(2000), resultado.limiteCredito());
 
-        assertNotNull(cartaoSalvo);
-        assertEquals(numeroCartaoEsperado, cartaoSalvo.getNumeroCartao());
-        assertEquals(cvvEsperado, cartaoSalvo.getCvv());
-        assertEquals(limiteEsperado, cartaoSalvo.getLimiteCredito());
-        assertEquals(10, cartaoSalvo.getDiaVencimentoFatura());
-        assertEquals(dataVencimentoEsperada, cartaoSalvo.getDataVencimento());
-        assertEquals(StatusCartao.CARTAO_ATIVO, cartaoSalvo.getStatus());
-        assertEquals(TipoCartao.CREDITO, cartaoSalvo.getTipoCartao());
-        assertEquals(conta, cartaoSalvo.getConta());
+        verify(validador).validar(cliente, conta, TipoCartao.CREDITO);
+        verify(cartaoRepository).save(cartao);
     }
 
     @Test
-    void solicitaCartaoCreditoQuandoContaNaoExisteEntaoLancaRegraDeNegocioException() {
-        var idContaInexistente = 99L;
-        CartaoCreditoCriarDadosRequest dadosSolicitacao = new CartaoCreditoCriarDadosRequest(idContaInexistente);
-        when(contaRepository.findById(idContaInexistente)).thenReturn(Optional.empty());
+    void deveBloquearCartaoComSucesso() {
+        Long idCartao = 1L;
+        Cartao cartao = spy(new Cartao());
+        cartao.setId(idCartao);
 
-        assertThrows(EntityNotFoundException.class, () -> {
-            cartaoService.solicitaCartaoCredito(dadosSolicitacao);
-        });
+        when(cartaoRepository.findById(idCartao)).thenReturn(Optional.of(cartao));
 
-        verify(cartaoRepository, never()).save(any(Cartao.class));
-        verify(validadores, never()).forEach(any());
+        cartaoService.bloqueiaCartao(idCartao);
+
+        verify(cartao).bloqueiaCartao();
+        verify(cartaoRepository).save(cartao);
+    }
+
+    @Test
+    void deveAtivarCartaoComSucesso() {
+        Long idCartao = 1L;
+        Cartao cartao = spy(new Cartao());
+        cartao.setId(idCartao);
+
+        when(cartaoRepository.findById(idCartao)).thenReturn(Optional.of(cartao));
+
+        cartaoService.ativarCartao(idCartao);
+
+        verify(cartao).ativaCartao();
+        verify(cartaoRepository).save(cartao);
+    }
+
+    @Test
+    void deveBuscarNumeroCartaoComSucesso() {
+        String numero = "123456789";
+        Cartao cartao = new Cartao();
+        when(cartaoRepository.findByNumeroCartao(numero)).thenReturn(Optional.of(cartao));
+
+        Cartao resultado = cartaoService.buscaNumeroCartao(numero);
+
+        assertNotNull(resultado);
+        assertEquals(cartao, resultado);
+    }
+
+    @Test
+    void deveLancarExceptionAoBuscarNumeroCartaoInexistente() {
+        String numero = "0000";
+        when(cartaoRepository.findByNumeroCartao(numero)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> cartaoService.buscaNumeroCartao(numero));
+    }
+
+    @Test
+    void deveLancarExceptionAoNaoEncontrarCartaoPorId() {
+        Long id = 99L;
+        when(cartaoRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> cartaoService.bloqueiaCartao(id));
+    }
+
+    @Test
+    void deveGerarNovoNumeroSeJaExistirNoBanco() {
+        Long idConta = 1L;
+        CartaoDebitoCriarDadosRequest request = new CartaoDebitoCriarDadosRequest(idConta, "123456");
+        Conta conta = new Conta();
+        conta.setCliente(new Cliente());
+        Cartao cartao = new Cartao();
+
+        when(contaService.buscarContaPorId(idConta)).thenReturn(conta);
+        when(passwordEncoder.encode(any())).thenReturn("hash");
+        when(cartaoMapper.toEntity(any(), any(), any())).thenReturn(cartao);
+
+        when(geradorDeCartaoUtil.geraNumeroCartao())
+                .thenReturn("1111")
+                .thenReturn("2222");
+
+        when(cartaoRepository.existsByNumeroCartao("1111")).thenReturn(true);
+        when(cartaoRepository.existsByNumeroCartao("2222")).thenReturn(false);
+
+        when(cartaoRepository.save(any())).thenReturn(cartao);
+
+        cartaoService.solicitaCartaoDebito(request);
+
+        ArgumentCaptor<Cartao> captor = ArgumentCaptor.forClass(Cartao.class);
+        verify(cartaoRepository).save(captor.capture());
+
+        assertEquals("2222", captor.getValue().getNumeroCartao());
+        verify(cartaoRepository, times(2)).existsByNumeroCartao(anyString());
     }
 }
