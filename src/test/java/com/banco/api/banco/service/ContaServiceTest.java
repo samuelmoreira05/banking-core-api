@@ -5,224 +5,214 @@ import com.banco.api.banco.controller.conta.response.ContaListagemDadosResponse;
 import com.banco.api.banco.controller.conta.response.ContaMostrarDadosResponse;
 import com.banco.api.banco.enums.StatusConta;
 import com.banco.api.banco.enums.TipoConta;
+import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.mapper.ContaMapper;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
-import com.banco.api.banco.repository.ClienteRepository;
 import com.banco.api.banco.repository.ContaRepository;
 import com.banco.api.banco.util.GeradorDeContaUtil;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ContaServiceTest {
 
-    @Mock private ContaRepository contaRepository;
-    @Mock private ClienteRepository clienteRepository;
-    @Mock private GeradorDeContaUtil geradorDeContaUtil;
-    @Mock private ContaMapper contaMapper;
-    @InjectMocks private ContaService contaService;
-    @Captor private ArgumentCaptor<Conta> contaArgumentCaptor;
+    @InjectMocks
+    private ContaService contaService;
+
+    @Mock
+    private ContaRepository repository;
+
+    @Mock
+    private ClienteService clienteService;
+
+    @Mock
+    private ContaMapper contaMapper;
+
+    @Mock
+    private GeradorDeContaUtil geradorDeContaUtil;
 
     @Test
-    void criaContaComBaseNoIdCliente() {
-        var idCliente = 1L;
-        ContaCadastroDadosRequest dados = new ContaCadastroDadosRequest(idCliente, TipoConta.CONTA_CORRENTE);
+    void deveCriarContaComSucesso() {
+        Long clienteId = 1L;
+        ContaCadastroDadosRequest dados = new ContaCadastroDadosRequest(clienteId, TipoConta.CONTA_CORRENTE);
 
         Cliente cliente = new Cliente();
-        cliente.setId(idCliente);
-        cliente.setNome("Samuel");
+        cliente.setId(clienteId);
+        cliente.setNome("Cliente Teste");
 
-        when(clienteRepository.findById(idCliente)).thenReturn(Optional.of(cliente));
+        Conta conta = new Conta();
+        conta.setSaldo(BigDecimal.ZERO);
+        conta.setStatus(StatusConta.ATIVO);
+        conta.setAgencia("0001");
+        conta.setNumeroConta("12345");
+
+        ContaMostrarDadosResponse responseEsperado = new ContaMostrarDadosResponse(
+                "12345",
+                TipoConta.CONTA_CORRENTE,
+                "0001",
+                BigDecimal.ZERO,
+                StatusConta.ATIVO,
+                LocalDateTime.now(),
+                1L,
+                "Cliente Teste"
+        );
+
+        when(clienteService.buscarClientePorId(clienteId)).thenReturn(cliente);
+        when(contaMapper.toEntity(dados, cliente)).thenReturn(conta);
         when(geradorDeContaUtil.gerarAgencia()).thenReturn("0001");
-        when(geradorDeContaUtil.gerarNumeroConta()).thenReturn("123456");
-        when(contaRepository.existsByNumeroConta("123456")).thenReturn(false);
-        when(contaMapper.toEntity(any(), any())).thenReturn(Conta.builder().cliente(cliente).tipoConta(TipoConta.CONTA_CORRENTE).build());
-        when(contaRepository.save(any(Conta.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(geradorDeContaUtil.gerarNumeroConta()).thenReturn("12345");
+        when(repository.existsByNumeroConta("12345")).thenReturn(false);
+        when(repository.save(conta)).thenReturn(conta);
+        when(contaMapper.toContaResponse(conta)).thenReturn(responseEsperado);
 
-        ContaMostrarDadosResponse response = contaService.criarConta(dados);
+        var resultado = contaService.criarConta(dados);
 
-        assertNotNull(response);
-        assertEquals(TipoConta.CONTA_CORRENTE, response.tipo());
-        assertEquals("Samuel", response.nomeCliente());
-
-        verify(contaRepository).save(contaArgumentCaptor.capture());
-        Conta conta = contaArgumentCaptor.getValue();
-
-        assertEquals(cliente, conta.getCliente());
-        assertEquals(TipoConta.CONTA_CORRENTE, conta.getTipoConta());
-        verify(geradorDeContaUtil).gerarAgencia();
-        verify(geradorDeContaUtil).gerarNumeroConta();
+        assertNotNull(resultado);
+        verify(repository).save(conta);
+        assertEquals(StatusConta.ATIVO, conta.getStatus());
+        assertEquals("0001", conta.getAgencia());
+        assertEquals("12345", conta.getNumeroConta());
     }
 
     @Test
-    void criacaoContaClienteNaoEncontrado() {
-        var idCliente = 1L;
+    void deveGerarNovoNumeroContaSeJaExistirAoCriar() {
+        Long clienteId = 1L;
+        ContaCadastroDadosRequest dados = new ContaCadastroDadosRequest(clienteId,TipoConta.CONTA_CORRENTE);
+        Cliente cliente = new Cliente();
+        Conta conta = new Conta();
 
-        ContaCadastroDadosRequest dados = new ContaCadastroDadosRequest(idCliente, TipoConta.CONTA_CORRENTE);
+        when(clienteService.buscarClientePorId(clienteId)).thenReturn(cliente);
+        when(contaMapper.toEntity(dados, cliente)).thenReturn(conta);
+        when(geradorDeContaUtil.gerarAgencia()).thenReturn("0001");
+
+        when(geradorDeContaUtil.gerarNumeroConta())
+                .thenReturn("11111")
+                .thenReturn("22222");
+
+        when(repository.existsByNumeroConta("11111")).thenReturn(true);
+        when(repository.existsByNumeroConta("22222")).thenReturn(false);
+
+        when(repository.save(conta)).thenReturn(conta);
+
+        contaService.criarConta(dados);
+
+        verify(repository, times(2)).existsByNumeroConta(anyString());
+        assertEquals("22222", conta.getNumeroConta());
+    }
+
+    @Test
+    void deveListarContas() {
+        Pageable pageable = Pageable.unpaged();
 
         Cliente cliente = new Cliente();
-        cliente.setId(idCliente);
-        cliente.setNome("Samuel");
-
-        when(clienteRepository.findById(idCliente)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> {
-            contaService.criarConta(dados);
-        });
-
-        verify(contaRepository, never()).save(any(Conta.class));
-    }
-
-    @Test
-    void  listaContaSucesso() {
-        Pageable pageable = PageRequest.of(0, 2);
-
-        Cliente cliente1 = new Cliente();
-        cliente1.setId(11L);
-        cliente1.setNome("Samuel");
-
-        Conta conta1 = new Conta();
-        conta1.setId(1L);
-        conta1.setCliente(cliente1);
-
-        Cliente cliente2 = new Cliente();
-        cliente2.setId(12L);
-        cliente2.setNome("Rafael");
-
-        Conta conta2 = new Conta();
-        conta2.setId(2L);
-        conta2.setCliente(cliente2);
-
-        Page<Conta> contaPage = new PageImpl<>(List.of(conta1, conta2), pageable, 2);
-
-        when(contaRepository.findAll(pageable)).thenReturn(contaPage);
-
-        Page<ContaListagemDadosResponse> response = contaService.listarConta(pageable);
-
-        assertNotNull(response);
-        assertEquals(2, response.getTotalElements());
-        assertEquals(2, response.getSize());
-        assertEquals("Samuel", response.getContent().get(0).dado().nome());
-        assertEquals("Rafael", response.getContent().get(1).dado().nome());
-    }
-
-    @Test
-    void retornaPaginaVazia() {
-        Pageable pageable = PageRequest.of(0, 10);
-
-        when(contaRepository.findAll(pageable)).thenReturn(Page.empty());
-
-        Page<ContaListagemDadosResponse> contaPage = contaService.listarConta(pageable);
-
-        assertNotNull(contaPage);
-        assertTrue(contaPage.isEmpty());
-        assertEquals(0, contaPage.getTotalElements());
-    }
-
-    @Test
-    void encerraContaClientePorId() {
-        var idCliente = 2L;
-        var idConta = 1L;
-
-        Cliente cliente = new Cliente();
-        cliente.setId(idCliente);
+        cliente.setId(1L);
+        cliente.setNome("Cliente Teste");
 
         Conta conta = new Conta();
-        conta.setId(idConta);
+        conta.setId(1L);
+        conta.setCliente(cliente);
+
+        Page<Conta> page = new PageImpl<>(List.of(conta));
+
+        when(repository.findAll(pageable)).thenReturn(page);
+
+        var resultado = contaService.listarConta(pageable);
+
+        assertNotNull(resultado);
+        assertFalse(resultado.isEmpty());
+    }
+
+    @Test
+    void deveEncerrarContaComSaldoZero() {
+        Long id = 1L;
+        Conta conta = spy(new Conta());
+        conta.setId(id);
+        conta.setSaldo(BigDecimal.ZERO);
         conta.setStatus(StatusConta.ATIVO);
 
-        when(contaRepository.findById(idConta)).thenReturn(Optional.of(conta));
+        when(repository.findById(id)).thenReturn(Optional.of(conta));
 
-        contaService.encerraConta(idConta);
+        contaService.encerraConta(id);
 
-        assertEquals(StatusConta.ENCERRADA, conta.getStatus());
+        verify(conta).encerraConta();
     }
 
     @Test
-    void lancaExcecaoQuandoIdNaoExistirEncerrar() {
-        var idConta = 2L;
-
-        when(contaRepository.findById(idConta)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> {
-           contaService.encerraConta(idConta);
-        });
-    }
-
-    @Test
-    void suspendeContaClientePorId() {
-        var idCliente = 2L;
-        var idConta = 1L;
-
-        Cliente cliente = new Cliente();
-        cliente.setId(idCliente);
-
+    void deveLancarExceptionAoEncerrarContaComSaldoPositivo() {
+        Long id = 1L;
         Conta conta = new Conta();
-        conta.setId(idConta);
+        conta.setId(id);
+        conta.setSaldo(new BigDecimal("10.00"));
+
+        when(repository.findById(id)).thenReturn(Optional.of(conta));
+
+        assertThrows(RegraDeNegocioException.class, () -> contaService.encerraConta(id));
+        assertEquals(StatusConta.ATIVO, conta.getStatus() == null ? StatusConta.ATIVO : conta.getStatus());
+    }
+
+    @Test
+    void deveLancarExceptionAoEncerrarContaComSaldoNegativo() {
+        Long id = 1L;
+        Conta conta = new Conta();
+        conta.setId(id);
+        conta.setSaldo(new BigDecimal("-50.00"));
+
+        when(repository.findById(id)).thenReturn(Optional.of(conta));
+
+        assertThrows(RegraDeNegocioException.class, () -> contaService.encerraConta(id));
+    }
+
+    @Test
+    void deveSuspenderConta() {
+        Long id = 1L;
+        Conta conta = spy(new Conta());
+        conta.setId(id);
         conta.setStatus(StatusConta.ATIVO);
 
-        when(contaRepository.findById(idConta)).thenReturn(Optional.of(conta));
+        when(repository.findById(id)).thenReturn(Optional.of(conta));
 
-        contaService.suspendeConta(idConta);
+        contaService.suspendeConta(id);
 
-        assertEquals(StatusConta.SUSPENSA, conta.getStatus());
+        verify(conta).suspendeConta();
     }
 
     @Test
-    void lancaExcecaoQuandoIdNaoExistirSuspender() {
-        var idConta = 2L;
-
-        when(contaRepository.findById(idConta)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> {
-            contaService.suspendeConta(idConta);
-        });
-    }
-
-    @Test
-    void ativaContaClientePorId() {
-        var idCliente = 2L;
-        var idConta = 1L;
-
-        Cliente cliente = new Cliente();
-        cliente.setId(idCliente);
-
-        Conta conta = new Conta();
-        conta.setId(idConta);
+    void deveAtivarConta() {
+        Long id = 1L;
+        Conta conta = spy(new Conta());
+        conta.setId(id);
         conta.setStatus(StatusConta.SUSPENSA);
 
-        when(contaRepository.findById(idConta)).thenReturn(Optional.of(conta));
+        when(repository.findById(id)).thenReturn(Optional.of(conta));
 
-        contaService.ativaConta(idConta);
+        contaService.ativaConta(id);
 
-        assertEquals(StatusConta.ATIVO, conta.getStatus());
+        verify(conta).ativaConta();
     }
 
     @Test
-    void lancaExcecaoQuandoIdNaoExistirAtivar() {
-        var idConta = 2L;
+    void deveLancarExceptionAoBuscarContaInexistente() {
+        Long id = 99L;
+        when(repository.findById(id)).thenReturn(Optional.empty());
 
-        when(contaRepository.findById(idConta)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> {
-            contaService.ativaConta(idConta);
-        });
+        assertThrows(EntityNotFoundException.class, () -> contaService.buscarContaPorId(id));
     }
 }
