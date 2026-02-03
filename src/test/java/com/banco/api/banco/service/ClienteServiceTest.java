@@ -5,6 +5,7 @@ import com.banco.api.banco.controller.cliente.request.ClienteCadastroDadosReques
 import com.banco.api.banco.controller.cliente.response.ClienteListagemDadosResponse;
 import com.banco.api.banco.controller.cliente.response.ClienteMostrarDadosResponse;
 import com.banco.api.banco.enums.StatusCliente;
+import com.banco.api.banco.enums.UserRole;
 import com.banco.api.banco.infra.exception.RegraDeNegocioException;
 import com.banco.api.banco.mapper.ClienteMapper;
 import com.banco.api.banco.model.entity.Cliente;
@@ -13,11 +14,11 @@ import com.banco.api.banco.repository.ClienteRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -26,196 +27,134 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ClienteServiceTest {
 
-    @Mock private ClienteRepository clienteRepository;
-    @Mock private PasswordEncoder passwordEncoder;
-    @Mock private ClienteMapper clienteMapper;
-    @InjectMocks private ClienteService clienteService;
-    @Captor private ArgumentCaptor<Cliente> clienteArgumentCaptor;
+    @InjectMocks
+    private ClienteService clienteService;
+
+    @Mock
+    private ClienteRepository repository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private ClienteMapper clienteMapper;
 
     @Test
-    void cricacaoDeCadastroDeClienteSucesso() {
+    void deveCadastrarClienteComSucesso() {
         ClienteCadastroDadosRequest dados = new ClienteCadastroDadosRequest(
-                "Samuel Garcia",
-                "samuel.garcia@email.com",
-                "49743844918",
-                "19995542038",
-                "rua itapeserica",
-                LocalDate.of(2005, 4, 4),
-                "samuel.g",
-                "samu123456"
+                "Nome", "email@teste.com", "12345678900", "99999999",
+                "Rua A", LocalDate.of(1990, 1, 1), "login", "senha"
         );
 
-        when(clienteRepository.existsByCpf(dados.cpf())).thenReturn(false);
-        when(passwordEncoder.encode(dados.senha())).thenReturn("senha_cripto");
+        Usuario usuario = new Usuario();
+        Cliente cliente = new Cliente();
+        cliente.setUsuario(usuario);
+        cliente.setDataNascimento(LocalDate.of(1990, 1, 1));
 
-        Usuario usuarioMapeado = Usuario.builder()
-                .login(dados.login())
-                .senha("senha_cripto")
-                .build();
+        ClienteMostrarDadosResponse responseEsperado = new ClienteMostrarDadosResponse(
+                1L, "Nome", "Rua A", "email@teste.com", "99999999", StatusCliente.ATIVO
+        );
 
-        Cliente clienteMapeado = Cliente.builder()
-                .nome(dados.nome())
-                .cpf(dados.cpf())
-                .email(dados.email())
-                .dataNascimento(dados.dataNascimento())
-                .endereco(dados.endereco())
-                .telefone(dados.telefone())
-                .usuario(usuarioMapeado)
-                .build();
+        when(repository.existsByCpf(dados.cpf())).thenReturn(false);
+        when(repository.existsByEmail(dados.email())).thenReturn(false);
+        when(clienteMapper.toEntity(dados, null)).thenReturn(cliente);
+        when(passwordEncoder.encode(dados.senha())).thenReturn("senhaHash");
+        when(repository.save(cliente)).thenReturn(cliente);
+        when(clienteMapper.toClienteResponse(cliente)).thenReturn(responseEsperado);
 
-        when(clienteMapper.toEntity(any(ClienteCadastroDadosRequest.class), eq("senha_cripto")))
-                .thenReturn(clienteMapeado);
+        var resultado = clienteService.cadastraCliente(dados);
 
-        ClienteMostrarDadosResponse response = clienteService.cadastraCliente(dados);
-
-        assertNotNull(response);
-        assertEquals("Samuel Garcia", response.nome());
-
-        verify(clienteRepository).save(clienteArgumentCaptor.capture());
-
-        Cliente clienteSalvo = clienteArgumentCaptor.getValue();
-
-        assertNotNull(clienteSalvo.getUsuario());
-        assertEquals("Samuel Garcia", clienteSalvo.getNome());
-        assertEquals("49743844918", clienteSalvo.getCpf());
-        assertEquals(StatusCliente.ATIVO, clienteSalvo.getStatus());
+        assertNotNull(resultado);
+        assertEquals(StatusCliente.ATIVO, cliente.getStatus());
+        assertEquals(UserRole.USER, cliente.getUsuario().getRole());
+        assertEquals("senhaHash", cliente.getUsuario().getSenha());
+        verify(repository).save(cliente);
     }
 
     @Test
-    void criacaoDeCadastroCpfDuplicado() {
+    void deveLancarExceptionQuandoClienteMenorDeIdade() {
         ClienteCadastroDadosRequest dados = new ClienteCadastroDadosRequest(
-                "Samuel Garcia",
-                "samuel.garcia@email.com",
-                "49743844918",
-                "19995542038",
-                "rua itapeserica",
-                LocalDate.of(2005, 4, 4),
-                "samuel.g",
-                "samu123456"
+                "Nome", "email@teste.com", "12345678900", "99999999",
+                "Rua A", LocalDate.now().minusYears(17), "login", "senha"
         );
 
-        when(clienteRepository.existsByCpf(dados.cpf())).thenReturn(true);
+        Cliente cliente = new Cliente();
+        cliente.setDataNascimento(LocalDate.now().minusYears(17));
 
-        assertThrows(RegraDeNegocioException.class, () -> {
-            clienteService.cadastraCliente(dados);
-        });
+        when(repository.existsByCpf(dados.cpf())).thenReturn(false);
+        when(repository.existsByEmail(dados.email())).thenReturn(false);
+        when(clienteMapper.toEntity(dados, null)).thenReturn(cliente);
 
-        verify(clienteRepository, never()).save(any(Cliente.class));
+        assertThrows(RegraDeNegocioException.class, () -> clienteService.cadastraCliente(dados));
+
+        verify(passwordEncoder, never()).encode(any());
+        verify(repository, never()).save(any());
     }
 
     @Test
-    void atualizarClienteSucesso() {
-        var id = 1L;
-
-        ClienteAtualizarDadosRequest dadosAtualizados = new ClienteAtualizarDadosRequest(
-                "Matheus Almeida",
-                "rua martins",
-                "mateus@email.com",
-                "19997534011"
+    void deveLancarExceptionQuandoCpfJaExiste() {
+        ClienteCadastroDadosRequest dados = new ClienteCadastroDadosRequest(
+                "Nome", "email@teste.com", "12345678900", "99999999",
+                "Rua A", LocalDate.of(1990, 1, 1), "login", "senha"
         );
 
-        Cliente clienteAntes = new Cliente();
-        clienteAntes.setId(1L);
-        clienteAntes.setNome("Samuel Garcia");
-        clienteAntes.setEndereco("rua itapeserica");
-        clienteAntes.setEmail("samuel.garcia@email.com");
-        clienteAntes.setTelefone("19995542038");
+        when(repository.existsByCpf(dados.cpf())).thenReturn(true);
 
-        when(clienteRepository.findById(id)).thenReturn(Optional.of(clienteAntes));
-
-        ClienteMostrarDadosResponse response = clienteService.atualizarCliente(id, dadosAtualizados);
-
-        assertNotNull(response);
-        assertEquals("Matheus Almeida", response.nome());
-        assertEquals("rua martins", response.endereco());
-        assertEquals("mateus@email.com", response.email());
-        assertEquals("19997534011", response.telefone());
-
-        assertEquals("Matheus Almeida", clienteAntes.getNome());
-        assertEquals("rua martins", clienteAntes.getEndereco());
-        assertEquals("mateus@email.com", clienteAntes.getEmail());
-        assertEquals("19997534011", clienteAntes.getTelefone());
+        assertThrows(RegraDeNegocioException.class, () -> clienteService.cadastraCliente(dados));
+        verify(repository, never()).save(any());
     }
 
     @Test
-    void atualizarClienteSemDadosId() {
-        var id = 1L;
+    void deveListarClientes() {
+        Pageable pageable = Pageable.unpaged();
+        Cliente cliente = new Cliente();
+        Page<Cliente> page = new PageImpl<>(List.of(cliente));
+        ClienteListagemDadosResponse responseListagem = new ClienteListagemDadosResponse(cliente);
 
-        ClienteAtualizarDadosRequest dadosAtualizados = new ClienteAtualizarDadosRequest(
-                "Matheus Almeida",
-                "rua martins",
-                "mateus@email.com",
-                "19997534011"
+        when(repository.findAll(pageable)).thenReturn(page);
+        when(clienteMapper.toClienteListagemResponse(cliente)).thenReturn(responseListagem);
+
+        var resultado = clienteService.listaCliente(pageable);
+
+        assertNotNull(resultado);
+        assertFalse(resultado.isEmpty());
+    }
+
+    @Test
+    void deveAtualizarClienteComSucesso() {
+        Long id = 1L;
+        ClienteAtualizarDadosRequest dados = new ClienteAtualizarDadosRequest(
+                "Novo Nome", "novo@email.com", "99999999", "Nova Rua"
+        );
+        Cliente cliente = spy(new Cliente());
+        cliente.setId(id);
+        ClienteMostrarDadosResponse response = new ClienteMostrarDadosResponse(
+                id, "Novo Nome", "Nova Rua", "novo@email.com", "99999999", StatusCliente.ATIVO
         );
 
-        Cliente clienteAntes = new Cliente();
-        clienteAntes.setId(1L);
-        clienteAntes.setNome("Samuel Garcia");
-        clienteAntes.setEndereco("rua itapeserica");
-        clienteAntes.setEmail("samuel.garcia@email.com");
-        clienteAntes.setTelefone("19995542038");
+        when(repository.findById(id)).thenReturn(Optional.of(cliente));
+        when(clienteMapper.toClienteResponse(cliente)).thenReturn(response);
 
-        when(clienteRepository.findById(id)).thenReturn(Optional.empty());
+        var resultado = clienteService.atualizarCliente(id, dados);
 
-        assertThrows(EntityNotFoundException.class, () -> {
-            clienteService.atualizarCliente(id, dadosAtualizados);
-        });
-
-        verify(clienteRepository, never()).save(any(Cliente.class));
+        assertNotNull(resultado);
+        verify(cliente).atualizaCliente(dados);
     }
 
     @Test
-    void listarClientesSucesso() {
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Cliente cliente1 = new Cliente();
-        cliente1.setId(1L);
-        cliente1.setNome("Samuel Garcia");
-
-        Cliente cliente2 = new Cliente();
-        cliente2.setId(2L);
-        cliente2.setNome("Rafael Moreira");
-
-        Page<Cliente> paginaCLiente = new PageImpl<>(List.of(cliente1, cliente2), pageable, 2);
-
-        when(clienteRepository.findAll(pageable)).thenReturn(paginaCLiente);
-
-        Page<ClienteListagemDadosResponse> response = clienteService.listaCliente(pageable);
-
-        assertNotNull(response);
-        assertEquals(2, response.getTotalElements());
-        assertEquals(2, response.getContent().size());
-        assertEquals("Samuel Garcia", response.getContent().get(0).nome());
-        assertEquals("Rafael Moreira", response.getContent().get(1).nome());
-    }
-
-    @Test
-    void retornaPaginaVazia() {
-        Pageable pageable = PageRequest.of(0, 10);
-
-        when(clienteRepository.findAll(pageable)).thenReturn(Page.empty());
-
-        Page<ClienteListagemDadosResponse> response = clienteService.listaCliente(pageable);
-
-        assertNotNull(response);
-        assertTrue(response.isEmpty());
-        assertEquals(0, response.getTotalElements());
-    }
-
-    @Test
-    void bloquearClientePorIdSucesso() {
-        var id = 1L;
-
+    void deveBloquearClienteComSucesso() {
+        Long id = 1L;
         Cliente cliente = new Cliente();
         cliente.setId(id);
         cliente.setStatus(StatusCliente.ATIVO);
 
-        when(clienteRepository.findById(id)).thenReturn(Optional.of(cliente));
+        when(repository.findById(id)).thenReturn(Optional.of(cliente));
 
         clienteService.bloquear(id);
 
@@ -223,24 +162,25 @@ class ClienteServiceTest {
     }
 
     @Test
-    void lancaExcecaoQuandoIdNaoExistirBloquear() {
-        var id = 1L;
+    void deveLancarExceptionAoBloquearClienteJaBloqueado() {
+        Long id = 1L;
+        Cliente cliente = new Cliente();
+        cliente.setId(id);
+        cliente.setStatus(StatusCliente.BLOQUEADO);
 
-        when(clienteRepository.findById(id)).thenReturn(Optional.empty());
+        when(repository.findById(id)).thenReturn(Optional.of(cliente));
 
-        assertThrows(EntityNotFoundException.class, () ->
-                clienteService.bloquear(id));
+        assertThrows(RegraDeNegocioException.class, () -> clienteService.bloquear(id));
     }
 
     @Test
-    void inadimplenteClientePorSucesso() {
-        var id = 1L;
-
+    void deveTornarClienteInadimplenteComSucesso() {
+        Long id = 1L;
         Cliente cliente = new Cliente();
-        cliente.setId(1L);
+        cliente.setId(id);
         cliente.setStatus(StatusCliente.ATIVO);
 
-        when(clienteRepository.findById(id)).thenReturn(Optional.of(cliente));
+        when(repository.findById(id)).thenReturn(Optional.of(cliente));
 
         clienteService.inadimplencia(id);
 
@@ -248,12 +188,24 @@ class ClienteServiceTest {
     }
 
     @Test
-    void lancaExcecaoQuandoIdNaoExistirInadimplencia() {
-        var id = 1L;
+    void deveAtivarClienteComSucesso() {
+        Long id = 1L;
+        Cliente cliente = new Cliente();
+        cliente.setId(id);
+        cliente.setStatus(StatusCliente.BLOQUEADO);
 
-        when(clienteRepository.findById(id)).thenReturn(Optional.empty());
+        when(repository.findById(id)).thenReturn(Optional.of(cliente));
 
-        assertThrows(EntityNotFoundException.class, () ->
-                clienteService.inadimplencia(id));
+        clienteService.ativaCliente(id);
+
+        assertEquals(StatusCliente.ATIVO, cliente.getStatus());
+    }
+
+    @Test
+    void deveLancarExceptionAoBuscarClienteInexistente() {
+        Long id = 99L;
+        when(repository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> clienteService.buscarClientePorId(id));
     }
 }
