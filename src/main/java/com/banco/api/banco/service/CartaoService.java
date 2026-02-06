@@ -4,7 +4,6 @@ import com.banco.api.banco.controller.cartao.request.CartaoCreditoCriarDadosRequ
 import com.banco.api.banco.controller.cartao.request.CartaoDebitoCriarDadosRequest;
 import com.banco.api.banco.controller.cartao.response.CartaoCreditoMostrarDadosResponse;
 import com.banco.api.banco.controller.cartao.response.CartaoDebitoMostrarDadosResponse;
-import com.banco.api.banco.enums.StatusCartao;
 import com.banco.api.banco.enums.TipoCartao;
 import com.banco.api.banco.mapper.CartaoMapper;
 import com.banco.api.banco.model.entity.Cartao;
@@ -12,6 +11,7 @@ import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.CartaoRepository;
 import com.banco.api.banco.service.calculadora.CalculadoraLimiteCartao;
+import com.banco.api.banco.service.factory.CartaoFactory;
 import com.banco.api.banco.service.validadores.cartaoCredito.ValidadorEmissaoCartao;
 import com.banco.api.banco.util.GeradorDeCartaoUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,7 +20,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -30,10 +29,9 @@ public class CartaoService {
     private final ContaService contaService;
     private final CartaoMapper cartaoMapper;
     private final PasswordEncoder passwordEncoder;
-    private final GeradorDeCartaoUtil geradorDeCartaoUtil;
     private final CalculadoraLimiteCartao calculadoraLimiteCartao;
     private final List<ValidadorEmissaoCartao> validadores;
-
+    private final CartaoFactory cartaoFactory;
 
     public CartaoService(CartaoRepository cartaoRepository,
                          CartaoMapper cartaoMapper,
@@ -41,14 +39,15 @@ public class CartaoService {
                          ContaService contaService,
                          GeradorDeCartaoUtil geradorDeCartaoUtil,
                          CalculadoraLimiteCartao calculadoraLimiteCartao,
-                         List<ValidadorEmissaoCartao> validadores) {
+                         List<ValidadorEmissaoCartao> validadores,
+                         CartaoFactory cartaoFactory) {
         this.cartaoRepository = cartaoRepository;
         this.cartaoMapper = cartaoMapper;
         this.passwordEncoder = passwordEncoder;
         this.contaService = contaService;
-        this.geradorDeCartaoUtil = geradorDeCartaoUtil;
         this.calculadoraLimiteCartao = calculadoraLimiteCartao;
         this.validadores = validadores;
+        this.cartaoFactory = cartaoFactory;
     }
 
     @Transactional
@@ -59,7 +58,7 @@ public class CartaoService {
 
         Cartao cartao = cartaoMapper.toEntity(dados, conta, senhaHash);
 
-        cartao = finalizarCriacaoCartao(cartao);
+        cartao = cartaoFactory.finalizarCriacaoCartao(cartao);
 
         return cartaoMapper.toDebitoResponse(cartao);
     }
@@ -76,7 +75,7 @@ public class CartaoService {
         cartao.setLimiteCredito(limiteCartao);
         cartao.setDiaVencimentoFatura(10);
 
-        cartao = finalizarCriacaoCartao(cartao);
+        cartao = cartaoFactory.finalizarCriacaoCartao(cartao);
 
         return cartaoMapper.toCreditoResponse(cartao);
     }
@@ -103,20 +102,6 @@ public class CartaoService {
     private Cartao buscarCartaoPorId(Long id) {
         return cartaoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cartao não encontrado na base de dados!"));
-    }
-
-    private Cartao finalizarCriacaoCartao (Cartao cartao) {
-        String numeroGerado;
-        do {
-            numeroGerado = geradorDeCartaoUtil.geraNumeroCartao();
-        }while (cartaoRepository.existsByNumeroCartao(numeroGerado));
-
-        cartao.setStatus(StatusCartao.CARTAO_ATIVO);
-        cartao.setNumeroCartao(numeroGerado);
-        cartao.setDataVencimento(LocalDate.now().plusYears(5));
-        cartao.setCvv(geradorDeCartaoUtil.geraCvv());
-
-       return cartaoRepository.save(cartao);
     }
 
     private Conta buscarEValidarConta(Long idConta, TipoCartao tipoCartao) {

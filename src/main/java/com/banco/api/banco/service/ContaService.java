@@ -10,6 +10,7 @@ import com.banco.api.banco.mapper.ContaMapper;
 import com.banco.api.banco.model.entity.Cliente;
 import com.banco.api.banco.model.entity.Conta;
 import com.banco.api.banco.repository.ContaRepository;
+import com.banco.api.banco.service.factory.ContaFactory;
 import com.banco.api.banco.util.GeradorDeContaUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -27,14 +28,16 @@ public class ContaService {
     private final ContaMapper contaMapper;
     private final ClienteService clienteService;
     private final GeradorDeContaUtil geradorDeContaUtil;
+    private final ContaFactory contaFactory;
 
     public ContaService(ContaRepository repository,
                         ContaMapper contaMapper, ClienteService clienteService,
-                        GeradorDeContaUtil geradorDeContaUtil) {
+                        GeradorDeContaUtil geradorDeContaUtil, ContaFactory contaFactory) {
         this.repository = repository;
         this.contaMapper = contaMapper;
         this.clienteService = clienteService;
         this.geradorDeContaUtil = geradorDeContaUtil;
+        this.contaFactory = contaFactory;
     }
 
     @Transactional
@@ -44,7 +47,7 @@ public class ContaService {
         Conta conta = contaMapper.toEntity(dados, cliente);
 
         conta.setAgencia(geradorDeContaUtil.gerarAgencia());
-        conta.setNumeroConta(gerarNumeroContaUnico());
+        conta.setNumeroConta(contaFactory.gerarNumeroContaUnico());
 
         conta.setStatus(StatusConta.ATIVO);
 
@@ -87,13 +90,5 @@ public class ContaService {
         return repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Conta com ID " + id + " não encontrada."));
 
-    }
-
-    private String gerarNumeroContaUnico() {
-        String numeroConta;
-        do {
-            numeroConta = geradorDeContaUtil.gerarNumeroConta();
-        }while (repository.existsByNumeroConta(numeroConta));
-        return numeroConta;
     }
 }
